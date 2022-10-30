@@ -6,6 +6,8 @@ workspace "Silver"
 
 	configurations { "Debug", "Release", "Distribution" }
 
+	flags { "MultiProcessorCompile" }
+
 BinOutput = "%{wks.location}/Build/%{cfg.system}/%{cfg.buildcfg}-%{cfg.architecture}" -- Silver/Build/Windows/Debug-x64/.exe
 IntOutput = "%{wks.location}/Build/%{cfg.system}/%{prj.name}.dir/%{cfg.buildcfg}" -- Silver/Build/Windows/Silver.dir/Debug/.obj
 

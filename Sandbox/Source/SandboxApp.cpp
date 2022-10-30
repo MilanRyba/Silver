@@ -1,8 +1,26 @@
+#include <Silver.h>
+#include <Silver/EntryPoint.h>
 #include <iostream>
 
-int main()
+class SandboxApp : public Silver::Application
 {
-	std::cout << "Silver Enigne!\n";
+public:
+	SandboxApp(const Silver::ApplicationSpecification& spec)
+		: Application(spec)
+	{
+		std::cout << spec.Title << std::endl;
+	}
 
-	std::cin.get();
+	~SandboxApp() {}
+
+	virtual void OnInit() override {}
+	virtual void OnShutdown() override {}
+};
+
+Silver::Application* Silver::CreateApplication(int ArgC, char** ArgV)
+{
+	Silver::ApplicationSpecification spec;
+	spec.Title = "Sandbox";
+
+	return new SandboxApp(spec);
 }
