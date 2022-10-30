@@ -1,0 +1,9 @@
+#Directories
+.vs/
+Build/windows/
+
+#Files
+*.vcxproj
+*.user
+*.filters
+*.sln
