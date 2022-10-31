@@ -5,10 +5,10 @@
 class SandboxApp : public Silver::Application
 {
 public:
-	SandboxApp(const Silver::ApplicationSpecification& spec)
-		: Application(spec)
+	SandboxApp(const Silver::ApplicationSpecification& InSpecification)
+		: Application(InSpecification)
 	{
-		std::cout << spec.Title << std::endl;
+		std::cout << InSpecification.Title << std::endl;
 	}
 
 	~SandboxApp() {}
@@ -20,7 +20,7 @@ public:
 Silver::Application* Silver::CreateApplication(int ArgC, char** ArgV)
 {
 	Silver::ApplicationSpecification spec;
-	spec.Title = "Sandbox";
+	spec.Title = "Silver Editor";
 
 	return new SandboxApp(spec);
 }

@@ -13,12 +13,13 @@ project "Sandbox"
 	}
 
 	includedirs {
-		"%{wks.location}/Silver/Source/"
+		"%{wks.location}/Silver/Source/",
+        "%{IncludeDirs.GLFW}"
 	}
 
     links {
-        "Silver"
-        -- GLFW
+        "Silver",
+        "GLFW"
     }
 
 	defines {}
