@@ -1,34 +1,30 @@
 #pragma once
 #include <iostream>
 #include "Core.h"
+#include "Logging.h"
 
 // Always turn on asserts in Debug mode
 #if defined(AG_DEBUG) && !defined(AG_ENABLE_ASSERTS)
 #define AG_ENABLE_ASSERTS
 #endif
 
-// TODO(Milan):
-/**** LOGGING! ****/
-
 #ifdef AG_ENABLE_ASSERTS
-void AssertFailedPrintMessage(const char* inExpression, const char* inFile, uint32_t inLine, const char* inMessage)
+void AssertFailedPrintMessage(const char* InExpression, const char* InFile, uint32_t InLine, const char* InMessage)
 {
-	std::cout << "Assertion failed!\n";
-	std::cout << "Expression: '" << inExpression << "' failed!" << std::endl;
-	std::cout << "File name: " << inFile << std::endl;
-	std::cout << "Line number: " << inLine << std::endl;
-	std::cout << inMessage << std::endl;
+	AG_CORE_ERROR("Expression: '{0}' Failed!", InExpression);
+	AG_CORE_INFO("File name: {0}", InFile);
+	AG_CORE_INFO("Line number: {0}", InLine);
+	AG_CORE_ERROR("{0}", InMessage);
 }
 
-void AssertFailedPrintMessage(const char* inExpression, const char* inFile, uint32_t inLine)
+void AssertFailedPrintMessage(const char* InExpression, const char* InFile, uint32_t InLine)
 {
-	std::cout << "Assertion failed!\n";
-	std::cout << "Expression: '" << inExpression << "' failed!" << std::endl;
-	std::cout << "File name: " << inFile << std::endl;
-	std::cout << "Line number: " << inLine << std::endl;
+	AG_CORE_ERROR("Expression: '{0}' Failed!", InExpression);
+	AG_CORE_INFO("File name: {0}", InFile);
+	AG_CORE_INFO("Line number: {0}", InLine);
 } 
 
-#define AG_ASSERT(inExpression, ...)	if (!(inExpression)) { AssertFailedPrintMessage(#inExpression, __FILE__, uint32_t(__LINE__), ##__VA_ARGS__); AG_BREAKPOINT; }
+#define AG_ASSERT(InExpression, ...)	if (!(InExpression)) { AssertFailedPrintMessage(#InExpression, __FILE__, uint32_t(__LINE__), ##__VA_ARGS__); AG_BREAKPOINT; }
 #else
-#define AG_ASSERT(inExpression, ...)
+#define AG_ASSERT(inExpression, ...) // Note(Milan): Instead of nothing maybe just inExpression in non-debug?
 #endif // AG_ENABLE_ASSERTS

@@ -8,7 +8,10 @@
 #include <variant>
 #include <optional>
 
+#include <filesystem>
+
 #include <fstream>
 #include <sstream>
 
 #include "Silver/Core/Core.h"
+#include "Silver/Core/Logging.h"

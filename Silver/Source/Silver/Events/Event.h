@@ -42,4 +42,6 @@ namespace Silver {
 		inline bool IsInCategory(EventCategory InCategory) { return InCategory & GetCategoryFlags(); }
 	};
 
+	// TODO(Milan): Add Event Dispatcher
+
 }

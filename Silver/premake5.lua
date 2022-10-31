@@ -17,8 +17,8 @@ project "Silver"
 
 	includedirs {
 		"Source/",
-        "Source/Silver/",
-        "%{IncludeDirs.GLFW}"
+        "%{IncludeDirs.GLFW}",
+        "%{IncludeDirs.spdlog}"
         -- Vulkan
 	}
 

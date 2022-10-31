@@ -1,6 +1,6 @@
 #include "AgPCH.h"
 #include "Application.h"
-#include "Events/KeyEvents.h"
+#include "Silver/Events/KeyEvents.h"
 
 #include <iostream>
 
@@ -17,10 +17,7 @@ namespace Silver {
 		m_Window->Init();
 		m_Window->SetEventCallback(AG_BIND_FN(Application::EventCallback));
 
-		// m_Window->Maximize();
-
-		KeyPressedEvent e(20);
-		std::cout << e.ToString() << std::endl;
+		m_Window->Maximize();
 	}
 
 	Application::~Application()
@@ -36,6 +33,14 @@ namespace Silver {
 		{
 			m_Window->ProcessEvents();
 
+			OnUpdate(m_TimeStep);
+
+			TimePoint time = std::chrono::high_resolution_clock::now();
+			m_FrameTime = std::chrono::duration_cast<std::chrono::duration<float>>(time - m_LastFrameTime).count();
+			// TODO(Milan): Should use glm's min()
+			m_TimeStep = std::min<float>(m_FrameTime, 0.0333f);
+			m_LastFrameTime = time;
+
 			m_Running = !m_Window->ShouldClose();
 		}
 		OnShutdown();
@@ -43,7 +48,9 @@ namespace Silver {
 
 	void Application::EventCallback(Event& InEvent)
 	{
-		std::cout << InEvent.ToString() << std::endl;
+		OnEvent(InEvent);
+
+		// AG_CORE_TRACE("{0}", InEvent.ToString());
 	}
 
 }

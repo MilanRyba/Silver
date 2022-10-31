@@ -8,13 +8,16 @@ public:
 	SandboxApp(const Silver::ApplicationSpecification& InSpecification)
 		: Application(InSpecification)
 	{
-		std::cout << InSpecification.Title << std::endl;
+		AG_INFO("Title of the app: {0}", InSpecification.Title);
 	}
 
 	~SandboxApp() {}
 
 	virtual void OnInit() override {}
 	virtual void OnShutdown() override {}
+
+	virtual void OnUpdate(float deltaTime) override {}
+	virtual void OnEvent(Silver::Event& InEvent) override {}
 };
 
 Silver::Application* Silver::CreateApplication(int ArgC, char** ArgV)

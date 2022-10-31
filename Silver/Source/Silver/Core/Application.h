@@ -2,6 +2,7 @@
 #include <string>
 #include <stdint.h>
 #include <memory>
+#include <chrono>
 
 #include "Window.h"
 #include "Silver/Events/Event.h"
@@ -17,6 +18,7 @@ namespace Silver {
 
 	class Application
 	{
+		using TimePoint = std::chrono::high_resolution_clock::time_point;
 	public:
 		Application(const ApplicationSpecification& InSpecification);
 		virtual ~Application();
@@ -24,7 +26,7 @@ namespace Silver {
 		void Run();
 	private:
 		virtual void OnInit() {}
-		virtual void OnUpdate() {}
+		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnShutdown() {}
 
 		void EventCallback(Event& InEvent);
@@ -32,6 +34,11 @@ namespace Silver {
 	private:
 		ApplicationSpecification m_Specification;
 		bool m_Running = false;
+
+
+		TimePoint m_LastFrameTime;
+		float m_TimeStep = 0.0f;
+		float m_FrameTime = 0.0f;
 
 		// TODO(Milan): Maybe use Scope<Window> ??
 		std::unique_ptr<Window> m_Window = nullptr;

@@ -29,7 +29,8 @@ namespace Silver {
 
 		m_Window = glfwCreateWindow((int)m_WindowData.Specification.Width, (int)m_WindowData.Specification.Height, m_WindowData.Specification.Title.c_str(), nullptr, nullptr);
 
-		AG_ASSERT(m_Window, "Failed to create window!");
+		AG_ASSERT(m_Window, "Failed to create GLFW Window!");
+		AG_CORE_INFO("Created Window!");
 
 		glfwSetWindowUserPointer(m_Window, &m_WindowData);
 

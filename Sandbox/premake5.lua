@@ -14,7 +14,8 @@ project "Sandbox"
 
 	includedirs {
 		"%{wks.location}/Silver/Source/",
-        "%{IncludeDirs.GLFW}"
+        "%{IncludeDirs.GLFW}",
+        "%{IncludeDirs.spdlog}"
 	}
 
     links {
