@@ -2,6 +2,8 @@
 #include <Silver/EntryPoint.h>
 #include <iostream>
 
+#include "glm/glm.hpp"
+
 class SandboxApp : public Silver::Application
 {
 public:

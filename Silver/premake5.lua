@@ -18,12 +18,16 @@ project "Silver"
 	includedirs {
 		"Source/",
         "%{IncludeDirs.GLFW}",
-        "%{IncludeDirs.spdlog}"
+        "%{IncludeDirs.spdlog}",
+        "%{IncludeDirs.glm}"
         -- Vulkan
 	}
 
 	defines {
-        "GLFW_INCLUDE_NONE"
+        "GLFW_INCLUDE_NONE",
+        "GLM_FORCE_DEPTH_ZERO_TO_ONE",
+        "GLM_FORCE_RADIANS",
+        "GLM_ENABLE_EXPERIMENTAL"
     }
 
 	filter "system:windows"

@@ -1,6 +1,9 @@
 #pragma once
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
+#include <spdlog/fmt/fmt.h>
+
+#include "glm/glm.hpp"
 
 namespace Silver {
 

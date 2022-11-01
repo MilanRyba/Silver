@@ -15,7 +15,8 @@ project "Sandbox"
 	includedirs {
 		"%{wks.location}/Silver/Source/",
         "%{IncludeDirs.GLFW}",
-        "%{IncludeDirs.spdlog}"
+        "%{IncludeDirs.spdlog}",
+        "%{IncludeDirs.glm}"
 	}
 
     links {
@@ -23,7 +24,11 @@ project "Sandbox"
         "GLFW"
     }
 
-	defines {}
+	defines {
+        "GLM_FORCE_DEPTH_ZERO_TO_ONE",
+        "GLM_FORCE_RADIANS",
+        "GLM_ENABLE_EXPERIMENTAL"
+    }
 
 	filter "system:windows"
         systemversion "latest"

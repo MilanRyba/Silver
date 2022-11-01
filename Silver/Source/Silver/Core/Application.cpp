@@ -1,6 +1,7 @@
 #include "AgPCH.h"
 #include "Application.h"
 #include "Silver/Events/KeyEvents.h"
+#include "glm/glm.hpp"
 
 #include <iostream>
 
@@ -37,8 +38,7 @@ namespace Silver {
 
 			TimePoint time = std::chrono::high_resolution_clock::now();
 			m_FrameTime = std::chrono::duration_cast<std::chrono::duration<float>>(time - m_LastFrameTime).count();
-			// TODO(Milan): Should use glm's min()
-			m_TimeStep = std::min<float>(m_FrameTime, 0.0333f);
+			m_TimeStep = glm::min<float>(m_FrameTime, 0.0333f);
 			m_LastFrameTime = time;
 
 			m_Running = !m_Window->ShouldClose();
@@ -52,7 +52,7 @@ namespace Silver {
 		dispacther.Dispatch<KeyPressedEvent>([&](KeyPressedEvent& InPressedEvent)
 		{
 			AG_CORE_WARN("{0}", InEvent);
-			return 20;
+			return true;
 		});
 
 		OnEvent(InEvent);

@@ -74,9 +74,9 @@ namespace Silver {
 		Event& m_Event;
 	};
 
-	inline std::ostream& operator<<(std::ostream& InOutstream, const Event& InEvent)
+	inline std::ostream& operator<<(std::ostream& InOutStream, const Event& InEvent)
 	{
-		return InOutstream << InEvent.ToString();
+		return InOutStream << InEvent.ToString();
 	}
 
 }
