@@ -42,6 +42,41 @@ namespace Silver {
 		inline bool IsInCategory(EventCategory InCategory) { return InCategory & GetCategoryFlags(); }
 	};
 
-	// TODO(Milan): Add Event Dispatcher
+	/*	A little how to use...
+	*
+	*	Construct the dispatcher with the event that came in
+	*	If the event in the template of Dispatch() is the same the as the on that came in, it will execute the function in the parameter
+	*		- The parameter is a function that also takes in the event in the template
+	*		- It needs to return bool (preferably, otherwise the compiler will yell at you)
+	*
+	*	EventDispatcher dispacther(InEvent);
+	*	dispacther.Dispatch<KeyPressedEvent>([&](KeyPressedEvent& InPressedEvent)
+	*	{
+	*		AG_CORE_WARN("{0}", InEvent);
+	*		return true;
+	*	});
+	*
+	*/
+
+	class EventDispatcher
+	{
+	public:
+		EventDispatcher(Event& InEvent)
+			: m_Event(InEvent) {}
+
+		template<typename Event, typename EventFunc>
+		void Dispatch(const EventFunc& InEventFunc)
+		{
+			if (m_Event.GetEventType() == Event::GetStaticType())
+				m_Event.Handled |= InEventFunc(static_cast<Event&>(m_Event));
+		}
+	private:
+		Event& m_Event;
+	};
+
+	inline std::ostream& operator<<(std::ostream& InOutstream, const Event& InEvent)
+	{
+		return InOutstream << InEvent.ToString();
+	}
 
 }

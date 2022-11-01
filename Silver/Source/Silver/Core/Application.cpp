@@ -17,7 +17,7 @@ namespace Silver {
 		m_Window->Init();
 		m_Window->SetEventCallback(AG_BIND_FN(Application::EventCallback));
 
-		m_Window->Maximize();
+		// m_Window->Maximize();
 	}
 
 	Application::~Application()
@@ -48,9 +48,14 @@ namespace Silver {
 
 	void Application::EventCallback(Event& InEvent)
 	{
-		OnEvent(InEvent);
+		EventDispatcher dispacther(InEvent);
+		dispacther.Dispatch<KeyPressedEvent>([&](KeyPressedEvent& InPressedEvent)
+		{
+			AG_CORE_WARN("{0}", InEvent);
+			return 20;
+		});
 
-		// AG_CORE_TRACE("{0}", InEvent.ToString());
+		OnEvent(InEvent);
 	}
 
 }
