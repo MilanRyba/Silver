@@ -32,6 +32,8 @@ namespace Silver {
 		uint32_t GetWidth() const { return m_WindowData.Specification.Width; }
 		uint32_t GetHeight() const { return m_WindowData.Specification.Height; }
 
+		GLFWwindow* GetWindow() const { return m_Window; }
+
 		void SetEventCallback(const EventCallbackFunc& InFunc) { m_WindowData.EventCallback = InFunc; }
 
 		bool ShouldClose() const;
@@ -39,6 +41,9 @@ namespace Silver {
 	private:
 		void Init();
 		void ProcessEvents();
+
+		// For Vulkan Instance
+		const char** GetRequiredInstanceExtensions(uint32_t* extensionCount);
 	private:
 		GLFWwindow* m_Window = nullptr;
 		WindowData m_WindowData;

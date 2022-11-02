@@ -1,9 +1,8 @@
 #include "AgPCH.h"
 #include "Application.h"
 #include "Silver/Events/KeyEvents.h"
-#include "glm/glm.hpp"
 
-#include <iostream>
+#include "glm/glm.hpp"
 
 namespace Silver {
 
@@ -17,6 +16,12 @@ namespace Silver {
 		m_Window = std::make_unique<Window>(windowSpec);
 		m_Window->Init();
 		m_Window->SetEventCallback(AG_BIND_FN(Application::EventCallback));
+
+		m_RendererContext = RendererContext::Create(m_Specification.RendererAPI);
+
+		uint32_t extensionCount = 0;
+		const char** extensions = m_Window->GetRequiredInstanceExtensions(&extensionCount);
+		m_RendererContext->Init(extensions, extensionCount);
 
 		// m_Window->Maximize();
 	}

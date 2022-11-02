@@ -14,7 +14,6 @@ IntOutput = "%{wks.location}/Build/%{cfg.system}/%{prj.name}.dir/%{cfg.buildcfg}
 -- group dependencies
 group "ThirdParty"
 include "ThirdParty/GLFW"
-
 group ""
 -- include projects
 

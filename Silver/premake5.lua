@@ -19,8 +19,8 @@ project "Silver"
 		"Source/",
         "%{IncludeDirs.GLFW}",
         "%{IncludeDirs.spdlog}",
-        "%{IncludeDirs.glm}"
-        -- Vulkan
+        "%{IncludeDirs.glm}",
+        "%{IncludeDirs.Vulkan}"
 	}
 
 	defines {
@@ -33,10 +33,9 @@ project "Silver"
 	filter "system:windows"
         systemversion "latest"
 
-        -- links
-        -- {
-        --     "%{Libraries.Vulkan}"
-        -- }
+        links {
+            "%{Libraries.Vulkan}"
+        }
 
     filter "configurations:Debug"
         defines "AG_DEBUG"

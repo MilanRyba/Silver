@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include "Core.h"
 #include "Logging.h"
 
@@ -9,7 +8,7 @@
 #endif
 
 #ifdef AG_ENABLE_ASSERTS
-void AssertFailedPrintMessage(const char* InExpression, const char* InFile, uint32_t InLine, const char* InMessage)
+inline void AssertFailedPrintMessage(const char* InExpression, const char* InFile, uint32_t InLine, const char* InMessage)
 {
 	AG_CORE_ERROR("Expression: '{0}' Failed!", InExpression);
 	AG_CORE_INFO("File name: {0}", InFile);
@@ -17,7 +16,7 @@ void AssertFailedPrintMessage(const char* InExpression, const char* InFile, uint
 	AG_CORE_ERROR("{0}", InMessage);
 }
 
-void AssertFailedPrintMessage(const char* InExpression, const char* InFile, uint32_t InLine)
+inline void AssertFailedPrintMessage(const char* InExpression, const char* InFile, uint32_t InLine)
 {
 	AG_CORE_ERROR("Expression: '{0}' Failed!", InExpression);
 	AG_CORE_INFO("File name: {0}", InFile);

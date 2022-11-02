@@ -1,6 +1,5 @@
 #include <Silver.h>
 #include <Silver/EntryPoint.h>
-#include <iostream>
 
 #include "glm/glm.hpp"
 
@@ -26,6 +25,7 @@ Silver::Application* Silver::CreateApplication(int ArgC, char** ArgV)
 {
 	Silver::ApplicationSpecification spec;
 	spec.Title = "Silver Editor";
+	spec.RendererAPI = Silver::RendererAPIType::Vulkan;
 
 	return new SandboxApp(spec);
 }

@@ -23,6 +23,13 @@
 	#define AG_COMPILER_CLANG
 #endif
 
+#ifdef AG_COMPILER_MSVC
+#define AG_PRAGMA(x)					__pragma(x)
+#define AG_SUPPRESS_WARNING_PUSH		AG_PRAGMA(warning (push))
+#define AG_SUPPRESS_WARNING_POP			AG_PRAGMA(warning (pop))
+#define AG_SUPPRESS_WARNING(w)			AG_PRAGMA(warning (disable : w))
+#endif
+
 #if defined(AG_PLATFORM_WINDOWS)
 	#define AG_BREAKPOINT __debugbreak();
 #endif

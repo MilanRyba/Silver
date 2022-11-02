@@ -32,6 +32,9 @@ namespace Silver {
 		AG_ASSERT(m_Window, "Failed to create GLFW Window!");
 		AG_CORE_INFO("Created Window!");
 
+		int32_t vulkan = glfwVulkanSupported();
+		AG_ASSERT(success, "Vulkan is not supported!");
+
 		glfwSetWindowUserPointer(m_Window, &m_WindowData);
 
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* InWindow, int InWidth, int InHeight)
@@ -122,6 +125,7 @@ namespace Silver {
 		glfwPollEvents();
 	}
 
+
 	bool Window::ShouldClose() const
 	{
 		return glfwWindowShouldClose(m_Window);
@@ -132,4 +136,9 @@ namespace Silver {
 		glfwMaximizeWindow(m_Window);
 	}
 
+	const char** Window::GetRequiredInstanceExtensions(uint32_t* InExtensionCount)
+	{
+		const char** extensions = glfwGetRequiredInstanceExtensions(InExtensionCount);
+		return extensions;
+	}
 }
