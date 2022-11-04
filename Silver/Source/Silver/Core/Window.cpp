@@ -17,6 +17,8 @@ namespace Silver {
 
 	Window::~Window()
 	{
+		glfwDestroyWindow(m_Window);
+		glfwTerminate();
 	}
 
 	void Window::Init()

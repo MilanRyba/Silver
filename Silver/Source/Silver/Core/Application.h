@@ -10,6 +10,7 @@
 
 #include "Silver/Renderer/RendererAPI.h"
 #include "Silver/Renderer/RendererContext.h"
+#include "Silver/Renderer/Swapchain.h"
 
 namespace Silver {
 
@@ -30,6 +31,9 @@ namespace Silver {
 		virtual ~Application();
 
 		void Run();
+
+		static Application& Get();
+		std::unique_ptr<Window>& GetWindow() { return m_Window; }
 	private:
 		virtual void OnInit() {}
 		virtual void OnUpdate(float deltaTime) {}
@@ -49,6 +53,7 @@ namespace Silver {
 		std::unique_ptr<Window> m_Window = nullptr;
 
 		Ref<RendererContext> m_RendererContext = nullptr;
+		Ref<Swapchain> m_Swapchain = nullptr;
 	};
 
 	Application* CreateApplication(int ArgC, char** ArgV);

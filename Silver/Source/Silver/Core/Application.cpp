@@ -6,9 +6,13 @@
 
 namespace Silver {
 
+	static Application* s_Application = nullptr;
+
 	Application::Application(const ApplicationSpecification& InSpecification)
 		: m_Specification(InSpecification)
 	{
+		s_Application = this;
+
 		WindowSpecification windowSpec;
 		windowSpec.Title = m_Specification.Title;
 		windowSpec.Width = m_Specification.WindowWidth;
@@ -17,11 +21,15 @@ namespace Silver {
 		m_Window->Init();
 		m_Window->SetEventCallback(AG_BIND_FN(Application::EventCallback));
 
+		// TODO(Milan): Should use renderer to get the api, maybe...
 		m_RendererContext = RendererContext::Create(m_Specification.RendererAPI);
 
 		uint32_t extensionCount = 0;
 		const char** extensions = m_Window->GetRequiredInstanceExtensions(&extensionCount);
 		m_RendererContext->Init(extensions, extensionCount);
+		m_Swapchain = Swapchain::Create(m_Specification.RendererAPI);
+		m_Swapchain->CreateSurface(m_Window->GetWindow());
+		m_Swapchain->RecreateSwapchain();
 
 		// m_Window->Maximize();
 	}
@@ -62,5 +70,7 @@ namespace Silver {
 
 		OnEvent(InEvent);
 	}
+
+	Application& Application::Get() { return *s_Application; }
 
 }
