@@ -72,13 +72,14 @@ namespace Silver {
 	void VulkanSwapchain::RecreateSwapchain()
 	{
 		// Checks for WSI support
-		VkPhysicalDevice device = VulkanContext::Get().GetPhysicalDevice();
+		VkPhysicalDevice physicalDevice = VulkanContext::Get().GetPhysicalDevice();
+		VkDevice device = VulkanContext::Get().GetDevice();
 		uint32_t graphicsQueueIndex = VulkanContext::Get().GetGraphicsQueue().QueueFamilyIndex;
 		VkBool32 supported;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, graphicsQueueIndex, m_Surface, &supported);
+		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsQueueIndex, m_Surface, &supported);
 		AG_ASSERT(supported == VK_TRUE);
 
-		SwapchainSupportDetails details = QuerySwapchainSupport(device);
+		SwapchainSupportDetails details = QuerySwapchainSupport(physicalDevice);
 		VkSurfaceFormatKHR surfaceFormat = ChooseSwapchainSurfaceFormat(details.Formats);
 		VkPresentModeKHR presentMode = ChooseSwapchainPresentMode(details.PresentModes);
 		VkExtent2D extent = ChooseSwapchainExtent(details.Capabilities);
@@ -111,6 +112,41 @@ namespace Silver {
 
 		VkResult result = vkCreateSwapchainKHR(VulkanContext::Get().GetDevice(), &createInfo, nullptr, &m_Swapchain);
 		AG_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan Swapchain!");
+		AG_CORE_WARN("Created Swapchain!");
+
+		// Retrieve the handles for swapchain images
+		vkGetSwapchainImagesKHR(device, m_Swapchain, &imageCount, nullptr);
+		m_Images.resize(imageCount);
+		vkGetSwapchainImagesKHR(device, m_Swapchain, &imageCount, m_Images.data());
+
+		m_Format = surfaceFormat.format;
+		m_Extent = extent;
+
+		// Create swapchain image views
+		m_ImageViews.resize(m_Images.size());
+		for (int i = 0; i < m_ImageViews.size(); i++)
+		{
+			VkImageViewCreateInfo createInfo{};
+			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			createInfo.image = m_Images[i];
+			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			createInfo.format = m_Format;
+
+			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+			createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+			createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			createInfo.subresourceRange.baseMipLevel = 0;
+			createInfo.subresourceRange.levelCount = 1;
+			createInfo.subresourceRange.baseArrayLayer = 0;
+			createInfo.subresourceRange.layerCount = 1;
+
+			VkResult result = vkCreateImageView(device, &createInfo, nullptr, &m_ImageViews[i]);
+			AG_ASSERT(result == VK_SUCCESS, "Failed to create Swapchain Image View!");
+		}
+		AG_CORE_WARN("Created all Swapchain Image Views!");
 	}
 
 	// TODO(Milan): Make static function

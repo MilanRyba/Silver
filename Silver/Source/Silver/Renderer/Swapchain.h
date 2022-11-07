@@ -14,6 +14,8 @@ namespace Silver {
 		virtual void CreateSurface(GLFWwindow* InWindow) = 0;
 		virtual void RecreateSwapchain() = 0;
 
+		virtual uint32_t GetImageCount() = 0;
+
 		static Ref<Swapchain> Create(RendererAPIType InType);
 	};
 

@@ -1,4 +1,4 @@
-project "Sandbox"
+project "SilverEditor"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
@@ -14,14 +14,18 @@ project "Sandbox"
 
 	includedirs {
 		"%{wks.location}/Silver/Source/",
+        "%{wks.location}/SilverEditor/Source/",
         "%{IncludeDirs.GLFW}",
         "%{IncludeDirs.spdlog}",
-        "%{IncludeDirs.glm}"
+        "%{IncludeDirs.glm}",
+        "%{IncludeDirs.ImGui}",
+        "%{IncludeDirs.Vulkan}"
 	}
 
     links {
         "Silver",
-        "GLFW"
+        "GLFW",
+        "ImGui"
     }
 
 	defines {

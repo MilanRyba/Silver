@@ -5,6 +5,7 @@ IncludeDirs["GLFW"] = "%{wks.location}/ThirdParty/GLFW/include"
 IncludeDirs["spdlog"] = "%{wks.location}/ThirdParty/spdlog/include"
 IncludeDirs["glm"] = "%{wks.location}/ThirdParty/glm"
 IncludeDirs["Vulkan"] = "%{VULKAN_SDK}/Include"
+IncludeDirs["ImGui"] = "%{wks.location}/ThirdParty/ImGui"
 
 LibraryDirs = {}
 LibraryDirs["Vulkan"] = "%{VULKAN_SDK}/Lib"

@@ -34,6 +34,7 @@ namespace Silver {
 
 		static Application& Get();
 		std::unique_ptr<Window>& GetWindow() { return m_Window; }
+		Ref<Swapchain>& GetSwapchain() { return m_Swapchain; }
 	private:
 		virtual void OnInit() {}
 		virtual void OnUpdate(float deltaTime) {}

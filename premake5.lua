@@ -2,7 +2,7 @@ include "Dependencies.lua"
 
 workspace "Silver"
 	architecture "x64"
-	startproject "Sandbox" -- For now; soon we will switch to an editor
+	startproject "SilverEditor"
 
 	configurations { "Debug", "Release", "Distribution" }
 
@@ -14,8 +14,9 @@ IntOutput = "%{wks.location}/Build/%{cfg.system}/%{prj.name}.dir/%{cfg.buildcfg}
 -- group dependencies
 group "ThirdParty"
 include "ThirdParty/GLFW"
+include "ThirdParty/ImGui"
 group ""
 -- include projects
 
 include "Silver"
-include "Sandbox"
+include "SilverEditor"
