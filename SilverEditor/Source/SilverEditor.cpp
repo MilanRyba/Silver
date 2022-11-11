@@ -4,6 +4,10 @@ SilverEditor::SilverEditor(const Silver::ApplicationSpecification& InSpecificati
 	: Application(InSpecification)
 {
 	AG_TRACE("Title of app: {0}", InSpecification.Title);
+
+	Silver::Timer timer;
+	m_Shader = Silver::Shader::Create("Assets/Shaders/Vertex.glsl", "Assets/Shaders/Fragment.glsl");
+	AG_INFO("Shader creation took: {0}ms", timer.ElapsedMillis());
 }
 
 SilverEditor::~SilverEditor()

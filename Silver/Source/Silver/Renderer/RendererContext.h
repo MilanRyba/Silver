@@ -1,6 +1,4 @@
 #pragma once
-#include "RendererAPI.h"
-
 #include "Silver/Core/Reference.h"
 
 namespace Silver {
@@ -11,7 +9,7 @@ namespace Silver {
 		virtual void Init(const char** extension, uint32_t extensionCount) = 0;
 		virtual void Shutdown() = 0;
 
-		static Ref<RendererContext> Create(RendererAPIType InType);
+		static Ref<RendererContext> Create();
 	};
 
 }

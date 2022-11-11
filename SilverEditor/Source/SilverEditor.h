@@ -16,4 +16,6 @@ public:
 
 	virtual void OnUpdate(float deltaTime) override;
 	virtual void OnEvent(Silver::Event& InEvent) override;
+private:
+	Silver::Ref<Silver::Shader> m_Shader;
 };

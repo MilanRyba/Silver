@@ -1,3 +1,4 @@
+#ifdef ag
 #include "ImGuiPlatformContextVulkan.h"
 
 #include <imgui.h>
@@ -83,3 +84,5 @@ void ImGuiPlatformContextVulkan::EndFramePlatform()
 {
 	// ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
 }
+
+#endif

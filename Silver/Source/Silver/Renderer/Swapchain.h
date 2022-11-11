@@ -1,6 +1,5 @@
 #pragma once
 #include "Silver/Core/Reference.h"
-#include "RendererAPI.h"
 
 struct GLFWwindow;
 
@@ -16,7 +15,7 @@ namespace Silver {
 
 		virtual uint32_t GetImageCount() = 0;
 
-		static Ref<Swapchain> Create(RendererAPIType InType);
+		static Ref<Swapchain> Create();
 	};
 
 }

@@ -1,3 +1,4 @@
+#ifdef ag
 #pragma once
 #include "UI/ImGuiPlatformContext.h"
 #include "vulkan/vulkan.h"
@@ -13,3 +14,5 @@ private:
 
 	VkDescriptorPool m_DescriptorPool;
 };
+
+#endif

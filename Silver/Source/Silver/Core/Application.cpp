@@ -1,6 +1,7 @@
 #include "AgPCH.h"
 #include "Application.h"
 #include "Silver/Events/KeyEvents.h"
+#include "Timer.h"
 
 #include "glm/glm.hpp"
 
@@ -11,6 +12,7 @@ namespace Silver {
 	Application::Application(const ApplicationSpecification& InSpecification)
 		: m_Specification(InSpecification)
 	{
+		Timer timer;
 		s_Application = this;
 
 		WindowSpecification windowSpec;
@@ -21,17 +23,18 @@ namespace Silver {
 		m_Window->Init();
 		m_Window->SetEventCallback(AG_BIND_FN(Application::EventCallback));
 
-		// TODO(Milan): Should use renderer to get the api, maybe...
-		m_RendererContext = RendererContext::Create(m_Specification.RendererAPI);
+		m_Renderer = Renderer::Create(m_Specification.RendererAPI);
 
+		m_RendererContext = RendererContext::Create();
 		uint32_t extensionCount = 0;
 		const char** extensions = m_Window->GetRequiredInstanceExtensions(&extensionCount);
 		m_RendererContext->Init(extensions, extensionCount);
-		m_Swapchain = Swapchain::Create(m_Specification.RendererAPI);
+
+		m_Swapchain = Swapchain::Create();
 		m_Swapchain->CreateSurface(m_Window->GetWindow());
 		m_Swapchain->RecreateSwapchain();
-
 		// m_Window->Maximize();
+		AG_CORE_ERROR("Application creation took: {0}ms", timer.ElapsedMillis());
 	}
 
 	Application::~Application()

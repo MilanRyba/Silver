@@ -8,9 +8,9 @@
 #include "Reference.h"
 #include "Silver/Events/Event.h"
 
-#include "Silver/Renderer/RendererAPI.h"
 #include "Silver/Renderer/RendererContext.h"
 #include "Silver/Renderer/Swapchain.h"
+#include "Silver/Renderer/Renderer.h"
 
 namespace Silver {
 
@@ -20,6 +20,7 @@ namespace Silver {
 		uint32_t WindowWidth = 1920;
 		uint32_t WindowHeight = 1080;
 
+		// Default renderering API for Silver is Vulkan (since its the only thing we have)
 		RendererAPIType RendererAPI = RendererAPIType::Vulkan;
 	};
 
@@ -55,6 +56,7 @@ namespace Silver {
 
 		Ref<RendererContext> m_RendererContext = nullptr;
 		Ref<Swapchain> m_Swapchain = nullptr;
+		Ref<Renderer> m_Renderer = nullptr;
 	};
 
 	Application* CreateApplication(int ArgC, char** ArgV);
