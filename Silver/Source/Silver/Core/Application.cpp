@@ -23,14 +23,14 @@ namespace Silver {
 		m_Window->Init();
 		m_Window->SetEventCallback(AG_BIND_FN(Application::EventCallback));
 
-		m_Renderer = Renderer::Create(m_Specification.RendererAPI);
+		// m_Renderer = new Renderer();
 
-		m_RendererContext = RendererContext::Create();
+		m_RendererContext = new RendererContext();
 		uint32_t extensionCount = 0;
 		const char** extensions = m_Window->GetRequiredInstanceExtensions(&extensionCount);
 		m_RendererContext->Init(extensions, extensionCount);
 
-		m_Swapchain = Swapchain::Create();
+		m_Swapchain = new Swapchain();
 		m_Swapchain->CreateSurface(m_Window->GetWindow());
 		m_Swapchain->RecreateSwapchain();
 		// m_Window->Maximize();

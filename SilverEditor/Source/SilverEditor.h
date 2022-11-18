@@ -18,4 +18,6 @@ public:
 	virtual void OnEvent(Silver::Event& InEvent) override;
 private:
 	Silver::Ref<Silver::Shader> m_Shader;
+	Silver::Ref<Silver::RenderPass> m_RenderPass;
+	Silver::Ref<Silver::Pipeline> m_Pipeline;
 };

@@ -19,9 +19,6 @@ namespace Silver {
 		std::string Title;
 		uint32_t WindowWidth = 1920;
 		uint32_t WindowHeight = 1080;
-
-		// Default renderering API for Silver is Vulkan (since its the only thing we have)
-		RendererAPIType RendererAPI = RendererAPIType::Vulkan;
 	};
 
 	class Application
