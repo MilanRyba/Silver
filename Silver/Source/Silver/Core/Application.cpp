@@ -9,17 +9,17 @@ namespace Silver {
 
 	static Application* s_Application = nullptr;
 
-	Application::Application(const ApplicationSpecification& InSpecification)
-		: m_Specification(InSpecification)
+	Application::Application(const ApplicationInfo& InInfo)
+		: m_Info(InInfo)
 	{
 		Timer timer;
 		s_Application = this;
 
-		WindowSpecification windowSpec;
-		windowSpec.Title = m_Specification.Title;
-		windowSpec.Width = m_Specification.WindowWidth;
-		windowSpec.Height = m_Specification.WindowHeight;
-		m_Window = std::make_unique<Window>(windowSpec);
+		WindowInfo windowInfo;
+		windowInfo.Title = m_Info.Title;
+		windowInfo.Width = m_Info.WindowWidth;
+		windowInfo.Height = m_Info.WindowHeight;
+		m_Window = std::make_unique<Window>(windowInfo);
 		m_Window->Init();
 		m_Window->SetEventCallback(AG_BIND_FN(Application::EventCallback));
 

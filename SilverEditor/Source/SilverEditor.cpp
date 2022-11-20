@@ -1,9 +1,9 @@
 #include "SilverEditor.h"
 
-SilverEditor::SilverEditor(const Silver::ApplicationSpecification& InSpecification)
-	: Application(InSpecification)
+SilverEditor::SilverEditor(const Silver::ApplicationInfo& InInfo)
+	: Application(InInfo)
 {
-	AG_TRACE("Title of app: {0}", InSpecification.Title);
+	AG_TRACE("Title of app: {0}", InInfo.Title);
 
 	Silver::Timer shaderTimer;
 	m_Shader = new Silver::Shader("Assets/Shaders/Vertex.glsl", "Assets/Shaders/Fragment.glsl");
@@ -47,8 +47,8 @@ void SilverEditor::OnEvent(Silver::Event& InEvent)
 
 Silver::Application* Silver::CreateApplication(int ArgC, char** ArgV)
 {
-	Silver::ApplicationSpecification spec;
-	spec.Title = "Silver Editor";
+	Silver::ApplicationInfo info;
+	info.Title = "Silver Editor";
 
-	return new SilverEditor(spec);
+	return new SilverEditor(info);
 }

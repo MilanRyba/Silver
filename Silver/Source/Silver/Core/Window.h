@@ -10,7 +10,7 @@ namespace Silver {
 
 	using EventCallbackFunc = std::function<void(Event&)>;
 
-	struct WindowSpecification
+	struct WindowInfo
 	{
 		std::string Title = "";
 		uint32_t Width = 0;
@@ -19,18 +19,18 @@ namespace Silver {
 
 	struct WindowData
 	{
-		WindowSpecification Specification;
+		WindowInfo Info;
 		EventCallbackFunc EventCallback = nullptr;
 	};
 
 	class Window
 	{
 	public:
-		Window(const WindowSpecification& spec);
+		Window(const WindowInfo& InInfo);
 		~Window();
 
-		uint32_t GetWidth() const { return m_WindowData.Specification.Width; }
-		uint32_t GetHeight() const { return m_WindowData.Specification.Height; }
+		uint32_t GetWidth() const { return m_WindowData.Info.Width; }
+		uint32_t GetHeight() const { return m_WindowData.Info.Height; }
 
 		GLFWwindow* GetWindow() const { return m_Window; }
 

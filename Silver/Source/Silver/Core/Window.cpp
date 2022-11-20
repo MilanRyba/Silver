@@ -10,9 +10,9 @@
 
 namespace Silver {
 
-	Window::Window(const WindowSpecification& InSpecification)
+	Window::Window(const WindowInfo& InInfo)
 	{
-		m_WindowData.Specification = InSpecification;
+		m_WindowData.Info = InInfo;
 	}
 
 	Window::~Window()
@@ -29,7 +29,7 @@ namespace Silver {
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-		m_Window = glfwCreateWindow((int)m_WindowData.Specification.Width, (int)m_WindowData.Specification.Height, m_WindowData.Specification.Title.c_str(), nullptr, nullptr);
+		m_Window = glfwCreateWindow((int)m_WindowData.Info.Width, (int)m_WindowData.Info.Height, m_WindowData.Info.Title.c_str(), nullptr, nullptr);
 
 		AG_ASSERT(m_Window, "Failed to create GLFW Window!");
 		AG_CORE_INFO("Created Window!");
@@ -43,8 +43,8 @@ namespace Silver {
 		{
 			WindowData* data = static_cast<WindowData*>(glfwGetWindowUserPointer(InWindow));
 
-			data->Specification.Width = InWidth;
-			data->Specification.Height = InHeight;
+			data->Info.Width = InWidth;
+			data->Info.Height = InHeight;
 
 			WindowResizeEvent resizeEvent(InWidth, InHeight);
 			data->EventCallback(resizeEvent);

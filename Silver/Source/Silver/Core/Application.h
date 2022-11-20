@@ -14,9 +14,9 @@
 
 namespace Silver {
 
-	struct ApplicationSpecification
+	struct ApplicationInfo
 	{
-		std::string Title;
+		std::string Title = "";
 		uint32_t WindowWidth = 1920;
 		uint32_t WindowHeight = 1080;
 	};
@@ -25,7 +25,7 @@ namespace Silver {
 	{
 		using TimePoint = std::chrono::high_resolution_clock::time_point;
 	public:
-		Application(const ApplicationSpecification& InSpecification);
+		Application(const ApplicationInfo& InInfo);
 		virtual ~Application();
 
 		void Run();
@@ -41,7 +41,7 @@ namespace Silver {
 		void EventCallback(Event& InEvent);
 		virtual void OnEvent(Event& InEvent) {}
 	private:
-		ApplicationSpecification m_Specification;
+		ApplicationInfo m_Info;
 		bool m_Running = false;
 
 		TimePoint m_LastFrameTime;

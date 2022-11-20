@@ -8,7 +8,7 @@
 class SilverEditor : public Silver::Application
 {
 public:
-	SilverEditor(const Silver::ApplicationSpecification& InSpecification);
+	SilverEditor(const Silver::ApplicationInfo& InInfo);
 	~SilverEditor();
 
 	virtual void OnInit() override;
