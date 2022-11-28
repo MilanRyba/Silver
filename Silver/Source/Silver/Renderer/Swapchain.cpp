@@ -59,6 +59,12 @@ namespace Silver {
 
 	Swapchain::~Swapchain()
 	{
+		for (auto imageView : m_ImageViews)
+			vkDestroyImageView(RendererContext::Get().GetDevice(), imageView, nullptr);
+
+		for (auto framebuffer : m_Framebuffers)
+			vkDestroyFramebuffer(RendererContext::Get().GetDevice(), framebuffer, nullptr);
+
 		vkDestroySwapchainKHR(RendererContext::Get().GetDevice(), m_Swapchain, nullptr);
 		vkDestroySurfaceKHR(RendererContext::Get().GetInstance(), m_Surface, nullptr);
 	}
@@ -147,6 +153,30 @@ namespace Silver {
 			AG_ASSERT(result == VK_SUCCESS, "Failed to create Swapchain Image View!");
 		}
 		AG_CORE_WARN("Created all Swapchain Image Views!");
+	}
+
+	void Swapchain::CreateFramebuffers(Ref<RenderPass> inRenderPass)
+	{
+		m_Framebuffers.resize(m_Images.size());
+		for (int i = 0; i < m_Images.size(); i++)
+		{
+			VkFramebufferCreateInfo createInfo{};
+			createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			createInfo.renderPass = inRenderPass->GetRenderPass();
+			createInfo.attachmentCount = 1;
+			createInfo.pAttachments = &m_ImageViews[i];
+			createInfo.width = m_Extent.width;
+			createInfo.height = m_Extent.height;
+			createInfo.layers = 1;
+	
+			VkResult result = vkCreateFramebuffer(RendererContext::Get().GetDevice(), &createInfo, nullptr, &m_Framebuffers[i]);
+			AG_ASSERT(result == VK_SUCCESS, "Failed to create Swapchain Framebuffers!");
+		}
+	}
+
+	VkResult Swapchain::AcquireNextImage(VkSemaphore& inImageReadySemaphore, uint32_t* inImageIndex)
+	{
+		return vkAcquireNextImageKHR(RendererContext::Get().GetDevice(), m_Swapchain, UINT64_MAX, inImageReadySemaphore, VK_NULL_HANDLE, inImageIndex);
 	}
 
 	// TODO(Milan): Make static function

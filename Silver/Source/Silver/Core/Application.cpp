@@ -9,8 +9,8 @@ namespace Silver {
 
 	static Application* s_Application = nullptr;
 
-	Application::Application(const ApplicationInfo& InInfo)
-		: m_Info(InInfo)
+	Application::Application(const ApplicationInfo& inInfo)
+		: m_Info(inInfo)
 	{
 		Timer timer;
 		s_Application = this;
@@ -23,7 +23,8 @@ namespace Silver {
 		m_Window->Init();
 		m_Window->SetEventCallback(AG_BIND_FN(Application::EventCallback));
 
-		// m_Renderer = new Renderer();
+		// ???
+		// Renderer::SetConfig(m_Info.RendererConfig);
 
 		m_RendererContext = new RendererContext();
 		uint32_t extensionCount = 0;
@@ -33,7 +34,8 @@ namespace Silver {
 		m_Swapchain = new Swapchain();
 		m_Swapchain->CreateSurface(m_Window->GetWindow());
 		m_Swapchain->RecreateSwapchain();
-		// m_Window->Maximize();
+		if (m_Info.StartMaximized)
+			m_Window->Maximize();
 		AG_CORE_ERROR("Application creation took: {0}ms", timer.ElapsedMillis());
 	}
 
@@ -59,19 +61,20 @@ namespace Silver {
 
 			m_Running = !m_Window->ShouldClose();
 		}
+		m_RendererContext->WaitForGPU();
 		OnShutdown();
 	}
 
-	void Application::EventCallback(Event& InEvent)
+	void Application::EventCallback(Event& inEvent)
 	{
-		EventDispatcher dispacther(InEvent);
+		EventDispatcher dispacther(inEvent);
 		dispacther.Dispatch<KeyPressedEvent>([&](KeyPressedEvent& InPressedEvent)
 		{
-			AG_CORE_WARN("{0}", InEvent);
+			AG_CORE_WARN("{0}", inEvent);
 			return true;
 		});
 
-		OnEvent(InEvent);
+		OnEvent(inEvent);
 	}
 
 	Application& Application::Get() { return *s_Application; }

@@ -2,6 +2,8 @@
 #include "RendererContext.h"
 #include "Swapchain.h"
 
+#include "Silver/Core/Application.h"
+
 namespace Silver {
 
     static const std::vector<const char*> s_DeviceExtensions = {
@@ -113,7 +115,7 @@ namespace Silver {
                 if (!requiredExtensions.empty())
                     continue;
 
-                // For now this just searches for the graphics queue
+                // Searches for the graphics and compute queue
                 FindQueueFamily(device);
 
                 m_PhysicalDevice = device;
@@ -156,13 +158,105 @@ namespace Silver {
             AG_CORE_TRACE("Created Vulkan Device");
 
             vkGetDeviceQueue(m_Device, m_GraphicsQueue.QueueFamilyIndex, 0, &m_GraphicsQueue.QueueHandle);
+            vkGetDeviceQueue(m_Device, m_ComputeQueue.QueueFamilyIndex, 0, &m_ComputeQueue.QueueHandle);
         }
+
+        m_GraphicsCommandPool = new CommandPool(m_GraphicsQueue.QueueFamilyIndex);
+        m_ComputeCommandPool = new CommandPool(m_ComputeQueue.QueueFamilyIndex);
+
+        // Create Semaphores and Fence
+        VkSemaphoreCreateInfo semaphore{};
+        semaphore.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        VkFenceCreateInfo fence{};
+        fence.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fence.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+        VkResult syncResult;
+        syncResult = vkCreateSemaphore(m_Device, &semaphore, nullptr, &m_ImageReadySemaphore);
+        AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
+        syncResult = vkCreateSemaphore(m_Device, &semaphore, nullptr, &m_PresentationReadySemaphore);
+        AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
+        syncResult = vkCreateFence(m_Device, &fence, nullptr, &m_FrameFence);
+        AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
     }
 
     void RendererContext::Shutdown()
     {
+        vkDestroySemaphore(m_Device, m_ImageReadySemaphore, nullptr);
+        vkDestroySemaphore(m_Device, m_PresentationReadySemaphore, nullptr);
+        vkDestroyFence(m_Device, m_FrameFence, nullptr);
+
         vkDestroyDevice(m_Device, nullptr);
         vkDestroyInstance(m_Instance, nullptr);
+    }
+
+    VkCommandBuffer RendererContext::CreatePrimaryCommandBuffer()
+    {
+        VkCommandBuffer commandBuffer;
+
+        VkCommandBufferAllocateInfo allocateInfo{};
+        allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocateInfo.commandPool = m_GraphicsCommandPool->GetCommandPool();
+        allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocateInfo.commandBufferCount = 1;
+
+        VkResult result = vkAllocateCommandBuffers(RendererContext::Get().GetDevice(), &allocateInfo, &commandBuffer);
+        AG_ASSERT(result == VK_SUCCESS, "Failed to allocate Command Buffers!");
+
+        return commandBuffer;
+    }
+
+    void RendererContext::FlushCommandBuffer(VkCommandBuffer inCommandBuffer)
+    {
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+        VkSemaphore waitSemaphores[] = { m_ImageReadySemaphore };
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &inCommandBuffer;
+
+        VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphore };
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
+
+        vkQueueSubmit(m_GraphicsQueue.QueueHandle, 1, &submitInfo, m_FrameFence);
+    }
+
+    void RendererContext::WaitForGPU()
+    {
+        vkWaitForFences(m_Device, 1, &m_FrameFence, VK_TRUE, UINT64_MAX);
+        vkResetFences(m_Device, 1, &m_FrameFence);
+    }
+
+    void RendererContext::BeginFrame()
+    {
+        Application::Get().GetSwapchain()->AcquireNextImage(m_ImageReadySemaphore, &m_ImageIndex);
+        // TODO(Milan): Check for resizing
+    }
+
+    void RendererContext::EndFrame()
+    {
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+        VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphore };
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
+        presentInfo.swapchainCount = 1;
+        VkSwapchainKHR swapchain = Application::Get().GetSwapchain()->GetSwapchain();
+        presentInfo.pSwapchains = &swapchain;
+        presentInfo.pImageIndices = &m_ImageIndex;
+        presentInfo.pResults = nullptr; // Optional
+
+        vkQueuePresentKHR(m_GraphicsQueue.QueueHandle, &presentInfo);
+
+        // Application::Get().GetSwapchain()->Present()
     }
 
     RendererContext& RendererContext::Get() { return *s_Instance; }
@@ -179,10 +273,13 @@ namespace Silver {
         for (const auto& queueFamily : queueFamilies)
         {
             if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            {
                 m_GraphicsQueue.QueueFamilyIndex = i;
+
+            if (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)
+                m_ComputeQueue.QueueFamilyIndex = i;
+
+            if (m_GraphicsQueue.QueueFamilyIndex != UINT32_MAX && m_ComputeQueue.QueueFamilyIndex != UINT32_MAX)
                 break;
-            }
 
             i++;
         }

@@ -42,11 +42,16 @@ namespace Silver {
 	class Pipeline : public RefTarget
 	{
 	public:
-		Pipeline(PipelineInfo info);
+		Pipeline(PipelineInfo inInfo);
 		~Pipeline();
+
+		VkPipeline GetPipeline() const { return m_Pipeline; }
+		PipelineInfo GetInfo() const { return m_Info; }
 	private:
 		VkPipeline m_Pipeline = VK_NULL_HANDLE;
 		VkPipelineLayout m_Layout = VK_NULL_HANDLE;
+
+		PipelineInfo m_Info;
 	};
 
 }

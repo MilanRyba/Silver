@@ -25,20 +25,21 @@ namespace Utils {
 
 namespace Silver {
 
-	Pipeline::Pipeline(PipelineInfo info)
+	Pipeline::Pipeline(PipelineInfo inInfo)
+		: m_Info(inInfo)
 	{
 		// All of this is pretty much hard-coded (as most other things are) and will be rewritten
 
 		VkPipelineShaderStageCreateInfo vertexShaderInfo{};
 		vertexShaderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		vertexShaderInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		vertexShaderInfo.module = info.Shader->GetShaderModules()[VK_SHADER_STAGE_VERTEX_BIT];
+		vertexShaderInfo.module = m_Info.Shader->GetShaderModules()[VK_SHADER_STAGE_VERTEX_BIT];
 		vertexShaderInfo.pName = "main";
 
 		VkPipelineShaderStageCreateInfo fragmentShaderInfo{};
 		fragmentShaderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		fragmentShaderInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragmentShaderInfo.module = info.Shader->GetShaderModules()[VK_SHADER_STAGE_FRAGMENT_BIT];
+		fragmentShaderInfo.module = m_Info.Shader->GetShaderModules()[VK_SHADER_STAGE_FRAGMENT_BIT];
 		fragmentShaderInfo.pName = "main";
 
 		VkPipelineShaderStageCreateInfo shaderInfos[] = {vertexShaderInfo, fragmentShaderInfo};
@@ -52,7 +53,7 @@ namespace Silver {
 
 		VkPipelineInputAssemblyStateCreateInfo assemblyInfo{};
 		assemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		assemblyInfo.topology = Utils::SilverTopologyToVulkan(info.Topology);
+		assemblyInfo.topology = Utils::SilverTopologyToVulkan(m_Info.Topology);
 		assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
 		VkExtent2D extent = Application::Get().GetSwapchain()->GetExtent();
@@ -94,7 +95,7 @@ namespace Silver {
 		rasterizer.depthClampEnable = VK_FALSE;
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-		rasterizer.lineWidth = info.LineWidth;
+		rasterizer.lineWidth = m_Info.LineWidth;
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 		rasterizer.depthBiasEnable = VK_FALSE;
@@ -155,7 +156,7 @@ namespace Silver {
 		createInfo.pColorBlendState = &colorBlending;
 		createInfo.pDynamicState = &dynamicState;
 		createInfo.layout = m_Layout;
-		createInfo.renderPass = info.RenderPass->GetRenderPass();
+		createInfo.renderPass = m_Info.RenderPass->GetRenderPass();
 		createInfo.subpass = 0;
 		createInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		createInfo.basePipelineIndex = -1; // Optional

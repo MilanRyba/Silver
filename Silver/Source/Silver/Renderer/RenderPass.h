@@ -2,11 +2,13 @@
 #include "Silver/Core/Reference.h"
 #include <vulkan/vulkan.h>
 
+#include "Framebuffer.h"
+
 namespace Silver {
 
 	struct RenderPassInfo
 	{
-		// Ref<Framebuffer> TargetFramebuffer;
+		Ref<Framebuffer> TargetFramebuffer;
 		std::string DebugName;
 	};
 
@@ -17,8 +19,10 @@ namespace Silver {
 		~RenderPass();
 
 		VkRenderPass GetRenderPass() const { return m_RenderPass; }
+		RenderPassInfo GetInfo() const { return m_Info; }
 	private:
 		VkRenderPass m_RenderPass = VK_NULL_HANDLE;
+		RenderPassInfo m_Info;
 	};
 
 }
