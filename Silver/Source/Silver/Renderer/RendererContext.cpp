@@ -165,6 +165,10 @@ namespace Silver {
         m_ComputeCommandPool = new CommandPool(m_ComputeQueue.QueueFamilyIndex);
 
         // Create Semaphores and Fence
+        m_ImageReadySemaphores.resize(Renderer::GetConfig().FramesInFlight);
+        m_PresentationReadySemaphores.resize(Renderer::GetConfig().FramesInFlight);
+        m_FrameFences.resize(Renderer::GetConfig().FramesInFlight);
+
         VkSemaphoreCreateInfo semaphore{};
         semaphore.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -173,19 +177,27 @@ namespace Silver {
         fence.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         VkResult syncResult;
-        syncResult = vkCreateSemaphore(m_Device, &semaphore, nullptr, &m_ImageReadySemaphore);
-        AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
-        syncResult = vkCreateSemaphore(m_Device, &semaphore, nullptr, &m_PresentationReadySemaphore);
-        AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
-        syncResult = vkCreateFence(m_Device, &fence, nullptr, &m_FrameFence);
-        AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
+        for (uint32_t i = 0; i < Renderer::GetConfig().FramesInFlight; i++)
+        {
+            syncResult = vkCreateSemaphore(m_Device, &semaphore, nullptr, &m_ImageReadySemaphores[i]);
+            AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
+
+            syncResult = vkCreateSemaphore(m_Device, &semaphore, nullptr, &m_PresentationReadySemaphores[i]);
+            AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
+
+            syncResult = vkCreateFence(m_Device, &fence, nullptr, &m_FrameFences[i]);
+            AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
+        }
     }
 
     void RendererContext::Shutdown()
     {
-        vkDestroySemaphore(m_Device, m_ImageReadySemaphore, nullptr);
-        vkDestroySemaphore(m_Device, m_PresentationReadySemaphore, nullptr);
-        vkDestroyFence(m_Device, m_FrameFence, nullptr);
+        for (uint32_t i = 0; i < Renderer::GetConfig().FramesInFlight; i++)
+        {
+            vkDestroySemaphore(m_Device, m_ImageReadySemaphores[i], nullptr);
+            vkDestroySemaphore(m_Device, m_PresentationReadySemaphores[i], nullptr);
+            vkDestroyFence(m_Device, m_FrameFences[i], nullptr);
+        }
 
         vkDestroyDevice(m_Device, nullptr);
         vkDestroyInstance(m_Instance, nullptr);
@@ -207,12 +219,12 @@ namespace Silver {
         return commandBuffer;
     }
 
-    void RendererContext::FlushCommandBuffer(VkCommandBuffer inCommandBuffer)
+    void RendererContext::FlushCommandBuffer(VkCommandBuffer inCommandBuffer, uint32_t inCurrentFrame)
     {
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = { m_ImageReadySemaphore };
+        VkSemaphore waitSemaphores[] = { m_ImageReadySemaphores[inCurrentFrame] };
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = waitSemaphores;
@@ -221,31 +233,30 @@ namespace Silver {
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &inCommandBuffer;
 
-        VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphore };
+        VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphores[inCurrentFrame] };
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        vkQueueSubmit(m_GraphicsQueue.QueueHandle, 1, &submitInfo, m_FrameFence);
+        vkQueueSubmit(m_GraphicsQueue.QueueHandle, 1, &submitInfo, m_FrameFences[inCurrentFrame]);
     }
 
-    void RendererContext::WaitForGPU()
+    // TODO(Milan): Remove inCurrentFrame
+    void RendererContext::WaitForGPU(uint32_t inCurrentFrame)
     {
-        vkWaitForFences(m_Device, 1, &m_FrameFence, VK_TRUE, UINT64_MAX);
-        vkResetFences(m_Device, 1, &m_FrameFence);
+        vkDeviceWaitIdle(m_Device);
     }
 
-    void RendererContext::BeginFrame()
+    VkResult RendererContext::BeginFrame(uint32_t inCurrentFrame)
     {
-        Application::Get().GetSwapchain()->AcquireNextImage(m_ImageReadySemaphore, &m_ImageIndex);
-        // TODO(Milan): Check for resizing
+        return Application::Get().GetSwapchain()->AcquireNextImage(m_ImageReadySemaphores[inCurrentFrame], &m_ImageIndex);
     }
 
-    void RendererContext::EndFrame()
+    VkResult RendererContext::EndFrame(uint32_t inCurrentFrame)
     {
         VkPresentInfoKHR presentInfo{};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
-        VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphore };
+        VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphores[inCurrentFrame] };
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores = signalSemaphores;
         presentInfo.swapchainCount = 1;
@@ -254,7 +265,7 @@ namespace Silver {
         presentInfo.pImageIndices = &m_ImageIndex;
         presentInfo.pResults = nullptr; // Optional
 
-        vkQueuePresentKHR(m_GraphicsQueue.QueueHandle, &presentInfo);
+        return vkQueuePresentKHR(m_GraphicsQueue.QueueHandle, &presentInfo);
 
         // Application::Get().GetSwapchain()->Present()
     }

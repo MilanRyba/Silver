@@ -5,6 +5,8 @@
 
 namespace Silver {
 
+	static RendererConfig s_Config;
+
 	void Renderer::Init()
 	{
 	}
@@ -33,5 +35,9 @@ namespace Silver {
 	{
 		vkCmdEndRenderPass(inCommandBuffer->GetCommandBuffer());
 	}
+
+	void Renderer::SetConfig(RendererConfig inConfig) { s_Config = inConfig; }
+
+	RendererConfig Renderer::GetConfig() { return s_Config; }
 
 }

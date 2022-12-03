@@ -6,6 +6,14 @@ SilverEditor::SilverEditor(const Silver::ApplicationInfo& inInfo)
 	AG_TRACE("Title of app: {0}", inInfo.Title);
 	Silver::Timer silverEditor;
 
+	m_CommandBuffers.resize(Silver::Renderer::GetConfig().FramesInFlight);
+	for (auto& buffer : m_CommandBuffers)
+	{
+		VkCommandBuffer cmdBuffer = m_RendererContext->CreatePrimaryCommandBuffer();
+		buffer = new Silver::CommandBuffer(cmdBuffer);
+	}
+	// Duplicate semaphores and fence in renderer context
+
 	VkCommandBuffer cmdBuffer = m_RendererContext->CreatePrimaryCommandBuffer();
 	m_CommandBuffer = new Silver::CommandBuffer(cmdBuffer);
 
@@ -47,19 +55,27 @@ void SilverEditor::OnShutdown()
 void SilverEditor::OnUpdate(float inDeltaTime)
 {
 	// Waits for the previous frame to finish
-	m_RendererContext->WaitForGPU();
+	m_RendererContext->WaitForFrameFence(m_CurrentFrame);
 
 	// Acquires next image from swapchain
-	m_RendererContext->BeginFrame();
+	VkResult beginResult = m_RendererContext->BeginFrame(m_CurrentFrame);
+	if (beginResult == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		m_Swapchain->RecreateSwapchain(m_RenderPass);
+		return;
+	}
+	else if (beginResult != VK_SUCCESS && beginResult != VK_SUBOPTIMAL_KHR)
+		AG_ASSERT("Failed to acquire Swapchain image!");
+	m_RendererContext->ResetFrameFence(m_CurrentFrame);
 
-	m_CommandBuffer->Reset();
+	m_CommandBuffers[m_CurrentFrame]->Reset();
 
-	m_CommandBuffer->Begin();
-	Silver::Renderer::BeginRenderPass(m_CommandBuffer, m_RenderPass, m_RendererContext->GetImageIndex());
+	m_CommandBuffers[m_CurrentFrame]->Begin();
+	Silver::Renderer::BeginRenderPass(m_CommandBuffers[m_CurrentFrame], m_RenderPass, m_RendererContext->GetImageIndex());
 
 	// Rendering
 	{
-		VkCommandBuffer cmdBuffer = m_CommandBuffer->GetCommandBuffer();
+		VkCommandBuffer cmdBuffer = m_CommandBuffers[m_CurrentFrame]->GetCommandBuffer();
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetPipeline());
 		// m_Pipeline->Begin() // -> Binds the pipeline
 
@@ -81,13 +97,19 @@ void SilverEditor::OnUpdate(float inDeltaTime)
 		vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
 	}
 
-	Silver::Renderer::EndRenderPass(m_CommandBuffer);
-	m_CommandBuffer->End();
+	Silver::Renderer::EndRenderPass(m_CommandBuffers[m_CurrentFrame]);
+	m_CommandBuffers[m_CurrentFrame]->End();
 	// Submits the command buffer to a (for now graphics) queue
-	m_RendererContext->FlushCommandBuffer(m_CommandBuffer->GetCommandBuffer());
+	m_RendererContext->FlushCommandBuffer(m_CommandBuffers[m_CurrentFrame]->GetCommandBuffer(), m_CurrentFrame);
 
 	// Presents image in the swapchain
-	m_RendererContext->EndFrame();
+	VkResult endResult = m_RendererContext->EndFrame(m_CurrentFrame);
+	if (endResult == VK_ERROR_OUT_OF_DATE_KHR || endResult == VK_SUBOPTIMAL_KHR || m_Resized)
+		m_Swapchain->RecreateSwapchain(m_RenderPass);
+	else if (endResult != VK_SUCCESS)
+		AG_ASSERT("Failed to present Swapchain image!");
+
+	m_CurrentFrame = (m_CurrentFrame + 1) % m_Info.RendererConfig.FramesInFlight;
 }
 
 void SilverEditor::OnEvent(Silver::Event& inEvent)
@@ -100,7 +122,7 @@ Silver::Application* Silver::CreateApplication(int ArgC, char** ArgV)
 	info.Title = "Silver Editor";
 	info.StartMaximized = false;
 
-	info.RendererConfig.FramesInFlight = 3;
+	info.RendererConfig.FramesInFlight = 2;
 
 	return new SilverEditor(info);
 }

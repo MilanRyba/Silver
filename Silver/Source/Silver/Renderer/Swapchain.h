@@ -22,7 +22,8 @@ namespace Silver {
 		~Swapchain();
 
 		void CreateSurface(GLFWwindow* InWindow);
-		void RecreateSwapchain();
+		void Create();
+		void RecreateSwapchain(Ref<RenderPass> inRenderPass);
 		void CreateFramebuffers(Ref<RenderPass> InRenderPass);
 
 		VkResult AcquireNextImage(VkSemaphore& inImageReadySemaphore, uint32_t* inImageIndex);
@@ -37,6 +38,8 @@ namespace Silver {
 		VkExtent2D GetExtent() const { return m_Extent; }
 		VkFormat GetFormat() const { return m_Format; }
 	private:
+		void DestroySwapchain();
+
 		SwapchainSupportDetails QuerySwapchainSupport(VkPhysicalDevice device);
 	private:
 		 VkSurfaceKHR m_Surface = VK_NULL_HANDLE;

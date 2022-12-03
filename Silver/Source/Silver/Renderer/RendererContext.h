@@ -25,11 +25,13 @@ namespace Silver {
 
 		// TODO(Milan): Get this situation under control
 		VkCommandBuffer CreatePrimaryCommandBuffer();
-		void FlushCommandBuffer(VkCommandBuffer inCommandBuffer);
+		void FlushCommandBuffer(VkCommandBuffer inCommandBuffer, uint32_t inCurrentFrame);
 
-		void WaitForGPU();
-		void BeginFrame();
-		void EndFrame();
+		void WaitForGPU(uint32_t inCurrentFrame);
+		void WaitForFrameFence(uint32_t inCurrentFrame) { vkWaitForFences(m_Device, 1, &m_FrameFences[inCurrentFrame], VK_TRUE, UINT64_MAX); }
+		void ResetFrameFence(uint32_t inCurrentFrame) { vkResetFences(m_Device, 1, &m_FrameFences[inCurrentFrame]); }
+		VkResult BeginFrame(uint32_t inCurrentFrame);
+		VkResult EndFrame(uint32_t inCurrentFrame);
 
 		static RendererContext& Get();
 		VkInstance GetInstance() { return m_Instance; }
@@ -53,9 +55,9 @@ namespace Silver {
 
 		uint32_t m_ImageIndex = 0;
 
-		VkSemaphore m_ImageReadySemaphore;
-		VkSemaphore m_PresentationReadySemaphore;
-		VkFence m_FrameFence;
+		std::vector<VkSemaphore> m_ImageReadySemaphores;
+		std::vector<VkSemaphore> m_PresentationReadySemaphores;
+		std::vector<VkFence> m_FrameFences;
 	};
 
 }

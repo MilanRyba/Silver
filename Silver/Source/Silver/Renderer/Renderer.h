@@ -6,7 +6,7 @@
 
 namespace Silver {
 
-	struct RendererCongfig
+	struct RendererConfig
 	{
 		uint32_t FramesInFlight;
 	};
@@ -21,7 +21,8 @@ namespace Silver {
 		static void BeginRenderPass(Ref<CommandBuffer> inCommandBuffer, Ref<RenderPass> inRenderPass, uint32_t inImageIndex);
 		static void EndRenderPass(Ref<CommandBuffer> inCommandBuffer);
 
-		static void SetConfig(RendererCongfig inConfig);
+		static void SetConfig(RendererConfig inConfig);
+		static RendererConfig GetConfig();
 	};
 
 }

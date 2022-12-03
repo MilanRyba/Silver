@@ -17,6 +17,8 @@ public:
 	virtual void OnUpdate(float inDeltaTime) override;
 	virtual void OnEvent(Silver::Event& inEvent) override;
 private:
+	uint32_t m_CurrentFrame = 0;
+	std::vector<Silver::Ref<Silver::CommandBuffer>> m_CommandBuffers;
 	Silver::Ref<Silver::CommandBuffer> m_CommandBuffer;
 
 	Silver::Ref<Silver::Shader> m_Shader;

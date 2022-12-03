@@ -59,13 +59,7 @@ namespace Silver {
 
 	Swapchain::~Swapchain()
 	{
-		for (auto imageView : m_ImageViews)
-			vkDestroyImageView(RendererContext::Get().GetDevice(), imageView, nullptr);
-
-		for (auto framebuffer : m_Framebuffers)
-			vkDestroyFramebuffer(RendererContext::Get().GetDevice(), framebuffer, nullptr);
-
-		vkDestroySwapchainKHR(RendererContext::Get().GetDevice(), m_Swapchain, nullptr);
+		DestroySwapchain();
 		vkDestroySurfaceKHR(RendererContext::Get().GetInstance(), m_Surface, nullptr);
 	}
 
@@ -75,7 +69,7 @@ namespace Silver {
 		AG_CORE_WARN("Created Surface! {0}", AG_FUNCTION_NAME);
 	}
 
-	void Swapchain::RecreateSwapchain()
+	void Swapchain::Create()
 	{
 		// Checks for WSI support
 		VkPhysicalDevice physicalDevice = RendererContext::Get().GetPhysicalDevice();
@@ -155,6 +149,17 @@ namespace Silver {
 		AG_CORE_WARN("Created all Swapchain Image Views!");
 	}
 
+	// Maybe just store the swapchain render pass; a consideration: 
+	void Swapchain::RecreateSwapchain(Ref<RenderPass> inRenderPass)
+	{
+		// We shouldn't touch resources that may still be in use
+		vkDeviceWaitIdle(RendererContext::Get().GetDevice());
+
+		DestroySwapchain();
+		Create();
+		CreateFramebuffers(inRenderPass);
+	}
+
 	void Swapchain::CreateFramebuffers(Ref<RenderPass> inRenderPass)
 	{
 		m_Framebuffers.resize(m_Images.size());
@@ -177,6 +182,17 @@ namespace Silver {
 	VkResult Swapchain::AcquireNextImage(VkSemaphore& inImageReadySemaphore, uint32_t* inImageIndex)
 	{
 		return vkAcquireNextImageKHR(RendererContext::Get().GetDevice(), m_Swapchain, UINT64_MAX, inImageReadySemaphore, VK_NULL_HANDLE, inImageIndex);
+	}
+
+	void Swapchain::DestroySwapchain()
+	{
+		for (auto framebuffer : m_Framebuffers)
+			vkDestroyFramebuffer(RendererContext::Get().GetDevice(), framebuffer, nullptr);
+
+		for (auto imageView : m_ImageViews)
+			vkDestroyImageView(RendererContext::Get().GetDevice(), imageView, nullptr);
+
+		vkDestroySwapchainKHR(RendererContext::Get().GetDevice(), m_Swapchain, nullptr);
 	}
 
 	// TODO(Milan): Make static function

@@ -21,7 +21,7 @@ namespace Silver {
 		uint32_t WindowHeight = 1080;
 		bool StartMaximized = true;
 
-		RendererCongfig RendererConfig;
+		RendererConfig RendererConfig;
 	};
 
 	class Application
@@ -46,6 +46,9 @@ namespace Silver {
 	protected:
 		ApplicationInfo m_Info;
 		bool m_Running = false;
+		bool m_Resized = false;
+		// TODO(Milan): Minimizing
+		bool m_Minimized = false;
 
 		TimePoint m_LastFrameTime;
 		float m_TimeStep = 0.0f;
