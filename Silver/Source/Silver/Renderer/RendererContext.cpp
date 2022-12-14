@@ -203,7 +203,7 @@ namespace Silver {
         vkDestroyInstance(m_Instance, nullptr);
     }
 
-    VkCommandBuffer RendererContext::CreatePrimaryCommandBuffer()
+    VkCommandBuffer RendererContext::CreatePrimaryCommandBuffer(bool inBegin)
     {
         VkCommandBuffer commandBuffer;
 
@@ -216,58 +216,58 @@ namespace Silver {
         VkResult result = vkAllocateCommandBuffers(RendererContext::Get().GetDevice(), &allocateInfo, &commandBuffer);
         AG_ASSERT(result == VK_SUCCESS, "Failed to allocate Command Buffers!");
 
+        if (inBegin)
+        {
+            VkCommandBufferBeginInfo beginInfo{};
+            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.flags = 0; // TODO(Milan): Should this be really be one time submit
+            beginInfo.pInheritanceInfo = nullptr;
+
+            VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+            AG_ASSERT(result == VK_SUCCESS, "Failed to begin recording Command Buffer!");
+        }
+
         return commandBuffer;
     }
 
-    void RendererContext::FlushCommandBuffer(VkCommandBuffer inCommandBuffer, uint32_t inCurrentFrame)
+    void RendererContext::FlushCommandBuffer(VkCommandBuffer inCommandBuffer, bool inFree)
     {
+        AG_ASSERT(inCommandBuffer != VK_NULL_HANDLE, "Tried to submit a command buffer that was not valid!");
+        
+        VkResult result = vkEndCommandBuffer(inCommandBuffer);
+        AG_ASSERT(result == VK_SUCCESS)
+
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = { m_ImageReadySemaphores[inCurrentFrame] };
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = waitSemaphores;
-        submitInfo.pWaitDstStageMask = waitStages;
+        // VkSemaphore waitSemaphores[] = { m_ImageReadySemaphores[inCurrentFrame] };
+        // VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        // submitInfo.waitSemaphoreCount = 1;
+        // submitInfo.pWaitSemaphores = waitSemaphores;
+        // submitInfo.pWaitDstStageMask = waitStages;
 
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &inCommandBuffer;
 
-        VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphores[inCurrentFrame] };
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
+        // VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphores[inCurrentFrame] };
+        // submitInfo.signalSemaphoreCount = 1;
+        // submitInfo.pSignalSemaphores = signalSemaphores;
 
-        vkQueueSubmit(m_GraphicsQueue.QueueHandle, 1, &submitInfo, m_FrameFences[inCurrentFrame]);
+        vkQueueSubmit(m_GraphicsQueue.QueueHandle, 1, &submitInfo, VK_NULL_HANDLE);
+
+        // TODO(Milan): See if we nee this
+        vkQueueWaitIdle(m_GraphicsQueue.QueueHandle);
+
+        if (inFree)
+        {
+            // TODO(Milan): Parameterize the pool
+            vkFreeCommandBuffers(m_Device, m_GraphicsCommandPool->GetCommandPool(), 1, &inCommandBuffer);
+        }
     }
 
-    // TODO(Milan): Remove inCurrentFrame
-    void RendererContext::WaitForGPU(uint32_t inCurrentFrame)
+    void RendererContext::WaitForGPU()
     {
         vkDeviceWaitIdle(m_Device);
-    }
-
-    VkResult RendererContext::BeginFrame(uint32_t inCurrentFrame)
-    {
-        return Application::Get().GetSwapchain()->AcquireNextImage(m_ImageReadySemaphores[inCurrentFrame], &m_ImageIndex);
-    }
-
-    VkResult RendererContext::EndFrame(uint32_t inCurrentFrame)
-    {
-        VkPresentInfoKHR presentInfo{};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-        VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphores[inCurrentFrame] };
-        presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = signalSemaphores;
-        presentInfo.swapchainCount = 1;
-        VkSwapchainKHR swapchain = Application::Get().GetSwapchain()->GetSwapchain();
-        presentInfo.pSwapchains = &swapchain;
-        presentInfo.pImageIndices = &m_ImageIndex;
-        presentInfo.pResults = nullptr; // Optional
-
-        return vkQueuePresentKHR(m_GraphicsQueue.QueueHandle, &presentInfo);
-
-        // Application::Get().GetSwapchain()->Present()
     }
 
     RendererContext& RendererContext::Get() { return *s_Instance; }

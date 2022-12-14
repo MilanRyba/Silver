@@ -24,8 +24,6 @@ namespace Silver {
 		m_Window->Init();
 		m_Window->SetEventCallback(AG_BIND_FN(Application::EventCallback));
 
-		Renderer::SetConfig(m_Info.RendererConfig);
-
 		m_RendererContext = new RendererContext();
 		uint32_t extensionCount = 0;
 		const char** extensions = m_Window->GetRequiredInstanceExtensions(&extensionCount);
@@ -36,6 +34,8 @@ namespace Silver {
 		m_Swapchain->Create();
 		if (m_Info.StartMaximized)
 			m_Window->Maximize();
+
+		Renderer::Init(m_RendererContext, m_Swapchain, m_Info.RendererConfig);
 		AG_CORE_ERROR("Application creation took: {0}ms", timer.ElapsedMillis());
 	}
 
@@ -60,7 +60,7 @@ namespace Silver {
 			m_TimeStep = glm::min<float>(m_FrameTime, 0.0333f);
 			m_LastFrameTime = time;
 		}
-		m_RendererContext->WaitForGPU(m_Info.RendererConfig.FramesInFlight);
+		m_RendererContext->WaitForGPU();
 		OnShutdown();
 	}
 

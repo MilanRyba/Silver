@@ -7,6 +7,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
 
 namespace Silver {
 
@@ -81,6 +82,7 @@ namespace Silver {
 
 		SwapchainSupportDetails details = QuerySwapchainSupport(physicalDevice);
 		VkSurfaceFormatKHR surfaceFormat = ChooseSwapchainSurfaceFormat(details.Formats);
+		surfaceFormat.format = VK_FORMAT_B8G8R8A8_UNORM; // We need to use format that ImGui requests (basically not SRGB)
 		VkPresentModeKHR presentMode = ChooseSwapchainPresentMode(details.PresentModes);
 		VkExtent2D extent = ChooseSwapchainExtent(details.Capabilities);
 
@@ -89,30 +91,33 @@ namespace Silver {
 		if (details.Capabilities.maxImageCount > 0 && imageCount > details.Capabilities.maxImageCount)
 			imageCount = details.Capabilities.maxImageCount;
 
-		VkSwapchainCreateInfoKHR createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = m_Surface;
+		// Create Swapchain
+		{
+			VkSwapchainCreateInfoKHR createInfo{};
+			createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+			createInfo.surface = m_Surface;
 
-		createInfo.minImageCount = imageCount;
-		createInfo.imageFormat = surfaceFormat.format;
-		createInfo.imageColorSpace = surfaceFormat.colorSpace;
-		createInfo.imageExtent = extent;
-		createInfo.imageArrayLayers = 1;
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			createInfo.minImageCount = imageCount;
+			createInfo.imageFormat = surfaceFormat.format;
+			createInfo.imageColorSpace = surfaceFormat.colorSpace;
+			createInfo.imageExtent = extent;
+			createInfo.imageArrayLayers = 1;
+			createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		createInfo.queueFamilyIndexCount = 0;
-		createInfo.pQueueFamilyIndices = nullptr;
+			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			createInfo.queueFamilyIndexCount = 0;
+			createInfo.pQueueFamilyIndices = nullptr;
 
-		createInfo.preTransform = details.Capabilities.currentTransform;
-		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		createInfo.presentMode = presentMode;
-		createInfo.clipped = VK_TRUE;
-		createInfo.oldSwapchain = VK_NULL_HANDLE; // Only one swapchain :)
+			createInfo.preTransform = details.Capabilities.currentTransform;
+			createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+			createInfo.presentMode = presentMode;
+			createInfo.clipped = VK_TRUE;
+			createInfo.oldSwapchain = VK_NULL_HANDLE; // Only one swapchain :)
 
-		VkResult result = vkCreateSwapchainKHR(RendererContext::Get().GetDevice(), &createInfo, nullptr, &m_Swapchain);
-		AG_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan Swapchain!");
-		AG_CORE_WARN("Created Swapchain!");
+			VkResult result = vkCreateSwapchainKHR(RendererContext::Get().GetDevice(), &createInfo, nullptr, &m_Swapchain);
+			AG_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan Swapchain!");
+			AG_CORE_WARN("Created Swapchain!");
+		}
 
 		// Retrieve the handles for swapchain images
 		vkGetSwapchainImagesKHR(device, m_Swapchain, &imageCount, nullptr);
@@ -147,27 +152,67 @@ namespace Silver {
 			AG_ASSERT(result == VK_SUCCESS, "Failed to create Swapchain Image View!");
 		}
 		AG_CORE_WARN("Created all Swapchain Image Views!");
+
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = m_Format;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = 0;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = 1;
+		renderPassInfo.pAttachments = &colorAttachment;
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
+
+		VkResult renderPassResult = vkCreateRenderPass(RendererContext::Get().GetDevice(), &renderPassInfo, nullptr, &m_RenderPass);
+		AG_ASSERT(renderPassResult == VK_SUCCESS, "Failed to create Swapchain Render Pass!");
+
+		CreateFramebuffers();
 	}
 
-	// Maybe just store the swapchain render pass; a consideration: 
-	void Swapchain::RecreateSwapchain(Ref<RenderPass> inRenderPass)
+	void Swapchain::RecreateSwapchain()
 	{
 		// We shouldn't touch resources that may still be in use
 		vkDeviceWaitIdle(RendererContext::Get().GetDevice());
 
 		DestroySwapchain();
 		Create();
-		CreateFramebuffers(inRenderPass);
+		CreateFramebuffers();
 	}
 
-	void Swapchain::CreateFramebuffers(Ref<RenderPass> inRenderPass)
+	void Swapchain::CreateFramebuffers()
 	{
 		m_Framebuffers.resize(m_Images.size());
 		for (int i = 0; i < m_Images.size(); i++)
 		{
 			VkFramebufferCreateInfo createInfo{};
 			createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			createInfo.renderPass = inRenderPass->GetRenderPass();
+			createInfo.renderPass = m_RenderPass;
 			createInfo.attachmentCount = 1;
 			createInfo.pAttachments = &m_ImageViews[i];
 			createInfo.width = m_Extent.width;
@@ -179,20 +224,92 @@ namespace Silver {
 		}
 	}
 
-	VkResult Swapchain::AcquireNextImage(VkSemaphore& inImageReadySemaphore, uint32_t* inImageIndex)
+	void Swapchain::Present(VkSemaphore inFinishedSemaphore)
 	{
-		return vkAcquireNextImageKHR(RendererContext::Get().GetDevice(), m_Swapchain, UINT64_MAX, inImageReadySemaphore, VK_NULL_HANDLE, inImageIndex);
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = &inFinishedSemaphore;
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = &m_Swapchain;
+		presentInfo.pImageIndices = &m_ImageIndex;
+		presentInfo.pResults = nullptr; // Optional
+
+		VkResult result = vkQueuePresentKHR(RendererContext::Get().GetGraphicsQueue().QueueHandle, &presentInfo);
+
+		// TODO(Milan): Resizing
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+			RecreateSwapchain();
+		else if (result != VK_SUCCESS)
+			AG_ASSERT("Failed to present Swapchain image!");
+	}
+
+	void Swapchain::Bind(VkCommandBuffer inCommandBuffer)
+	{
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast<float>(m_Extent.width);
+		viewport.height = static_cast<float>(m_Extent.height);
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(inCommandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = m_Extent;
+		vkCmdSetScissor(inCommandBuffer, 0, 1, &scissor);
+
+		VkClearValue clearValue = { { 0.0f, 0.0f, 0.0f, 1.0f} };
+
+		VkRenderPassBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		beginInfo.framebuffer = m_Framebuffers[m_ImageIndex];
+		beginInfo.renderPass = m_RenderPass;
+		beginInfo.clearValueCount = 1;
+		beginInfo.pClearValues = &clearValue;
+		beginInfo.renderArea.offset = { 0, 0 };
+		beginInfo.renderArea.extent = m_Extent;
+
+		vkCmdBeginRenderPass(inCommandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	}
+
+	void Swapchain::Unbind(VkCommandBuffer inCommandBuffer)
+	{
+		vkCmdEndRenderPass(inCommandBuffer);
+	}
+
+	bool Swapchain::AcquireNextImage(VkSemaphore& inImageReadySemaphore)
+	{
+		VkResult result = vkAcquireNextImageKHR(RendererContext::Get().GetDevice(), m_Swapchain, UINT64_MAX, inImageReadySemaphore, VK_NULL_HANDLE, &m_ImageIndex);
+		if (result == VK_ERROR_OUT_OF_DATE_KHR)
+		{
+			RecreateSwapchain();
+			return false;
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+		{
+			AG_ASSERT("Failed to acquire Swapchain image!");
+			return false;
+		}
+
+		return true;
 	}
 
 	void Swapchain::DestroySwapchain()
 	{
+		VkDevice device = RendererContext::Get().GetDevice();
+
 		for (auto framebuffer : m_Framebuffers)
-			vkDestroyFramebuffer(RendererContext::Get().GetDevice(), framebuffer, nullptr);
+			vkDestroyFramebuffer(device, framebuffer, nullptr);
 
 		for (auto imageView : m_ImageViews)
-			vkDestroyImageView(RendererContext::Get().GetDevice(), imageView, nullptr);
+			vkDestroyImageView(device, imageView, nullptr);
 
-		vkDestroySwapchainKHR(RendererContext::Get().GetDevice(), m_Swapchain, nullptr);
+		vkDestroyRenderPass(device, m_RenderPass, nullptr);
+
+		vkDestroySwapchainKHR(device, m_Swapchain, nullptr);
 	}
 
 	// TODO(Milan): Make static function

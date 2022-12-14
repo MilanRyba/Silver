@@ -1,4 +1,5 @@
 #include "SilverEditor.h"
+#include <imgui.h>
 
 SilverEditor::SilverEditor(const Silver::ApplicationInfo& inInfo)
 	: Application(inInfo)
@@ -12,10 +13,6 @@ SilverEditor::SilverEditor(const Silver::ApplicationInfo& inInfo)
 		VkCommandBuffer cmdBuffer = m_RendererContext->CreatePrimaryCommandBuffer();
 		buffer = new Silver::CommandBuffer(cmdBuffer);
 	}
-	// Duplicate semaphores and fence in renderer context
-
-	VkCommandBuffer cmdBuffer = m_RendererContext->CreatePrimaryCommandBuffer();
-	m_CommandBuffer = new Silver::CommandBuffer(cmdBuffer);
 
 	Silver::Timer shaderTimer;
 	m_Shader = new Silver::Shader("Assets/Shaders/Vertex.glsl", "Assets/Shaders/Fragment.glsl");
@@ -26,7 +23,7 @@ SilverEditor::SilverEditor(const Silver::ApplicationInfo& inInfo)
 	renderPassInfo.DebugName = "Default";
 	m_RenderPass = new Silver::RenderPass(renderPassInfo);
 	AG_INFO("Render Pass creation took: {0}ms", renderPassTimer.ElapsedMillis());
-	m_Swapchain->CreateFramebuffers(m_RenderPass);
+	// m_Swapchain->CreateFramebuffers(m_RenderPass);
 
 	Silver::Timer pipelineTimer;
 	Silver::PipelineInfo pipelineInfo;
@@ -45,19 +42,22 @@ SilverEditor::~SilverEditor()
 
 void SilverEditor::OnInit()
 {
-	// m_ImGuiContext = ImGuiPlatformContext::Create(Silver::RendererAPIType::Vulkan);
+	m_ImGuiContext.Init();
 }
 
 void SilverEditor::OnShutdown()
 {
 }
 
+// TODO(Milan): Handle swapchain recreation with ImGui
 void SilverEditor::OnUpdate(float inDeltaTime)
 {
 	// Waits for the previous frame to finish
+	// Acquires next image from swapchain
+	Silver::Renderer::BeginFrame();
+	/*
 	m_RendererContext->WaitForFrameFence(m_CurrentFrame);
 
-	// Acquires next image from swapchain
 	VkResult beginResult = m_RendererContext->BeginFrame(m_CurrentFrame);
 	if (beginResult == VK_ERROR_OUT_OF_DATE_KHR)
 	{
@@ -67,7 +67,12 @@ void SilverEditor::OnUpdate(float inDeltaTime)
 	else if (beginResult != VK_SUCCESS && beginResult != VK_SUBOPTIMAL_KHR)
 		AG_ASSERT("Failed to acquire Swapchain image!");
 	m_RendererContext->ResetFrameFence(m_CurrentFrame);
+	*/
 
+	// --- DO RENDERING HERE ---
+	// have rendering commands as functions inside CommandBuffer class (drawIndexed)
+
+	/*
 	m_CommandBuffers[m_CurrentFrame]->Reset();
 
 	m_CommandBuffers[m_CurrentFrame]->Begin();
@@ -101,8 +106,14 @@ void SilverEditor::OnUpdate(float inDeltaTime)
 	m_CommandBuffers[m_CurrentFrame]->End();
 	// Submits the command buffer to a (for now graphics) queue
 	m_RendererContext->FlushCommandBuffer(m_CommandBuffers[m_CurrentFrame]->GetCommandBuffer(), m_CurrentFrame);
+	*/
+
+	// Handle ImGui when resizing;
+	DrawUI();
 
 	// Presents image in the swapchain
+	Silver::Renderer::EndFrame();
+	/*
 	VkResult endResult = m_RendererContext->EndFrame(m_CurrentFrame);
 	if (endResult == VK_ERROR_OUT_OF_DATE_KHR || endResult == VK_SUBOPTIMAL_KHR || m_Resized)
 		m_Swapchain->RecreateSwapchain(m_RenderPass);
@@ -110,17 +121,59 @@ void SilverEditor::OnUpdate(float inDeltaTime)
 		AG_ASSERT("Failed to present Swapchain image!");
 
 	m_CurrentFrame = (m_CurrentFrame + 1) % m_Info.RendererConfig.FramesInFlight;
+	*/
 }
 
 void SilverEditor::OnEvent(Silver::Event& inEvent)
 {
 }
 
+void SilverEditor::DrawUI()
+{
+	m_ImGuiContext.BeginFrame();
+
+	ImGuiViewport* MainViewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(MainViewport->Pos);
+	ImGui::SetNextWindowSize(MainViewport->Size);
+	ImGui::SetNextWindowViewport(MainViewport->ID);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+	ImGuiWindowFlags DockspaceWindowFlags =
+		ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+	ImGui::Begin("MainDockspaceWindow", nullptr, DockspaceWindowFlags);
+	ImGui::PopStyleVar(3);
+	ImGui::DockSpace(ImGui::GetID("MainDockspace"));
+
+
+	ImGui::ShowDemoWindow();
+	
+	bool open = true;
+	ImGui::Begin("Viewport");
+	ImGui::End();
+
+	ImGui::Begin("Outliner", &open);
+	ImGui::Text("Point Light");
+	ImGui::End();
+	
+	ImGui::End();
+	ImGui::Render();
+
+	auto cmdBuffer = Silver::Renderer::GetCurrentCommandBuffer();
+	m_Swapchain->Bind(cmdBuffer->GetCommandBuffer());
+	m_ImGuiContext.EndFrame();
+	m_Swapchain->Unbind(cmdBuffer->GetCommandBuffer());
+}
+
 Silver::Application* Silver::CreateApplication(int ArgC, char** ArgV)
 {
 	Silver::ApplicationInfo info;
 	info.Title = "Silver Editor";
-	info.StartMaximized = false;
+	info.StartMaximized = true;
 
 	info.RendererConfig.FramesInFlight = 2;
 

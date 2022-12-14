@@ -22,16 +22,24 @@ namespace Silver {
 
 		void Init(const char** extensions, uint32_t extensionCount);
 		void Shutdown();
+		
+		/*** TODO(Milan) : Get this situation under control ***/
 
-		// TODO(Milan): Get this situation under control
-		VkCommandBuffer CreatePrimaryCommandBuffer();
-		void FlushCommandBuffer(VkCommandBuffer inCommandBuffer, uint32_t inCurrentFrame);
+		/* Allocates a command buffer from command pool(the graphics one)
+		* if inBegin is true, it will start recording the command buffer */
+		VkCommandBuffer CreatePrimaryCommandBuffer(bool inBegin = false);
 
-		void WaitForGPU(uint32_t inCurrentFrame);
-		void WaitForFrameFence(uint32_t inCurrentFrame) { vkWaitForFences(m_Device, 1, &m_FrameFences[inCurrentFrame], VK_TRUE, UINT64_MAX); }
-		void ResetFrameFence(uint32_t inCurrentFrame) { vkResetFences(m_Device, 1, &m_FrameFences[inCurrentFrame]); }
-		VkResult BeginFrame(uint32_t inCurrentFrame);
-		VkResult EndFrame(uint32_t inCurrentFrame);
+		/* Finishes command buffer recording and submits it to a queue
+		* if inFree is true, the command buffer will be freed */
+		void FlushCommandBuffer(VkCommandBuffer inCommandBuffer, bool inFree = false);
+
+		void WaitForGPU();
+
+		/* THIS IS DONE IN RENDERER*/
+		// void WaitForFrameFence(uint32_t inCurrentFrame) { vkWaitForFences(m_Device, 1, &m_FrameFences[inCurrentFrame], VK_TRUE, UINT64_MAX); }
+		// void ResetFrameFence(uint32_t inCurrentFrame) { vkResetFences(m_Device, 1, &m_FrameFences[inCurrentFrame]); }
+		// VkResult BeginFrame(uint32_t inCurrentFrame);
+		// VkResult EndFrame(uint32_t inCurrentFrame);
 
 		static RendererContext& Get();
 		VkInstance GetInstance() { return m_Instance; }

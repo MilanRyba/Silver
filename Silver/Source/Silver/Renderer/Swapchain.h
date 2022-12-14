@@ -23,16 +23,24 @@ namespace Silver {
 
 		void CreateSurface(GLFWwindow* InWindow);
 		void Create();
-		void RecreateSwapchain(Ref<RenderPass> inRenderPass);
-		void CreateFramebuffers(Ref<RenderPass> InRenderPass);
+		void RecreateSwapchain();
+		// TODO(Milan): This shloud probably be removed now
+		void CreateFramebuffers();
 
-		VkResult AcquireNextImage(VkSemaphore& inImageReadySemaphore, uint32_t* inImageIndex);
+		/* These two start and end the m_RenderPass
+		*/
+		void Bind(VkCommandBuffer inCommandBuffer);
+		void Unbind(VkCommandBuffer inCommandBuffer);
 
-		VkSwapchainKHR GetSwapchain() { return m_Swapchain; }
+		bool AcquireNextImage(VkSemaphore& inImageReadySemaphore);
+		void Present(VkSemaphore inFinishedSemaphore);
+
+		VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
+		VkRenderPass GetRenderPass() const { return m_RenderPass; }
 
 		const std::vector<VkImage>& GetImages() const { return m_Images; }
 		const std::vector<VkImageView>& GetImageViews() const { return m_ImageViews; }
-		const std::vector<VkFramebuffer>& GetFramebuffers() const { return m_Framebuffers; }
+		const VkFramebuffer GetCurrentFramebuffer() const { return m_Framebuffers[m_ImageIndex]; }
 
 		uint32_t GetImageCount() const { return (uint32_t)m_Images.size(); }
 		VkExtent2D GetExtent() const { return m_Extent; }
@@ -47,6 +55,10 @@ namespace Silver {
 
 		 VkFormat m_Format;
 		 VkExtent2D m_Extent;
+		 VkRenderPass m_RenderPass = VK_NULL_HANDLE;
+
+		 // Index to the currently acquired image from swapchain
+		 uint32_t m_ImageIndex = 0;
 
 		 std::vector<VkImage> m_Images;
 		 std::vector<VkImageView> m_ImageViews;

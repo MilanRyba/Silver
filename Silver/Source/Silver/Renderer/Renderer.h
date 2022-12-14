@@ -1,6 +1,8 @@
 #pragma once
 #include "Silver/Core/Reference.h"
 
+#include "RendererContext.h"
+#include "Swapchain.h"
 #include "CommandBuffer.h"
 #include "RenderPass.h"
 
@@ -15,14 +17,17 @@ namespace Silver {
 	class Renderer : public RefTarget
 	{
 	public:
-		static void Init();
+		static void Init(Ref<RendererContext> inContext, Ref<Swapchain> inSwapchain, RendererConfig inConfig);
 		static void Shutdown();
 
-		static void BeginRenderPass(Ref<CommandBuffer> inCommandBuffer, Ref<RenderPass> inRenderPass, uint32_t inImageIndex);
+		static void BeginFrame();
+		static void EndFrame();
+
+		static void BeginRenderPass(Ref<CommandBuffer> inCommandBuffer, VkRenderPass inRenderPass, uint32_t inImageIndex);
 		static void EndRenderPass(Ref<CommandBuffer> inCommandBuffer);
 
-		static void SetConfig(RendererConfig inConfig);
 		static RendererConfig GetConfig();
+		static Ref<CommandBuffer> GetCurrentCommandBuffer();
 	};
 
 }
