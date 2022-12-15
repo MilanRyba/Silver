@@ -3,7 +3,8 @@
 #include <Silver/EntryPoint.h>
 
 #include "glm/glm.hpp"
-#include "UI/ImGuiPlatformContext.h"
+#include "UI/ImGuiLayer.h"
+#include "Panels/PanelManager.h"
 
 class SilverEditor : public Silver::Application
 {
@@ -20,11 +21,12 @@ private:
 	void DrawUI();
 private:
 	uint32_t m_CurrentFrame = 0;
-	std::vector<Silver::Ref<Silver::CommandBuffer>> m_CommandBuffers;
 
 	Silver::Ref<Silver::Shader> m_Shader;
 	Silver::Ref<Silver::RenderPass> m_RenderPass;
 	Silver::Ref<Silver::Pipeline> m_Pipeline;
 
-	ImGuiPlatformContext m_ImGuiContext;
+	ImGuiLayer m_ImGuiLayer;
+	
+	std::unique_ptr<PanelManager> m_PanelManeger;
 };

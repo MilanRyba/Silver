@@ -163,42 +163,10 @@ namespace Silver {
 
         m_GraphicsCommandPool = new CommandPool(m_GraphicsQueue.QueueFamilyIndex);
         m_ComputeCommandPool = new CommandPool(m_ComputeQueue.QueueFamilyIndex);
-
-        // Create Semaphores and Fence
-        m_ImageReadySemaphores.resize(Renderer::GetConfig().FramesInFlight);
-        m_PresentationReadySemaphores.resize(Renderer::GetConfig().FramesInFlight);
-        m_FrameFences.resize(Renderer::GetConfig().FramesInFlight);
-
-        VkSemaphoreCreateInfo semaphore{};
-        semaphore.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-        VkFenceCreateInfo fence{};
-        fence.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fence.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-        VkResult syncResult;
-        for (uint32_t i = 0; i < Renderer::GetConfig().FramesInFlight; i++)
-        {
-            syncResult = vkCreateSemaphore(m_Device, &semaphore, nullptr, &m_ImageReadySemaphores[i]);
-            AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
-
-            syncResult = vkCreateSemaphore(m_Device, &semaphore, nullptr, &m_PresentationReadySemaphores[i]);
-            AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
-
-            syncResult = vkCreateFence(m_Device, &fence, nullptr, &m_FrameFences[i]);
-            AG_ASSERT(syncResult == VK_SUCCESS, "Failed to create syncronization objects!");
-        }
     }
 
     void RendererContext::Shutdown()
     {
-        for (uint32_t i = 0; i < Renderer::GetConfig().FramesInFlight; i++)
-        {
-            vkDestroySemaphore(m_Device, m_ImageReadySemaphores[i], nullptr);
-            vkDestroySemaphore(m_Device, m_PresentationReadySemaphores[i], nullptr);
-            vkDestroyFence(m_Device, m_FrameFences[i], nullptr);
-        }
-
         vkDestroyDevice(m_Device, nullptr);
         vkDestroyInstance(m_Instance, nullptr);
     }

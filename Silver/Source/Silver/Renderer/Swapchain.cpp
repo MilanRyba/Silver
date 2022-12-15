@@ -116,7 +116,6 @@ namespace Silver {
 
 			VkResult result = vkCreateSwapchainKHR(RendererContext::Get().GetDevice(), &createInfo, nullptr, &m_Swapchain);
 			AG_ASSERT(result == VK_SUCCESS, "Failed to create Vulkan Swapchain!");
-			AG_CORE_WARN("Created Swapchain!");
 		}
 
 		// Retrieve the handles for swapchain images
@@ -128,71 +127,92 @@ namespace Silver {
 		m_Extent = extent;
 
 		// Create swapchain image views
-		m_ImageViews.resize(m_Images.size());
-		for (int i = 0; i < m_ImageViews.size(); i++)
 		{
-			VkImageViewCreateInfo createInfo{};
-			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			createInfo.image = m_Images[i];
-			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			createInfo.format = m_Format;
+			m_ImageViews.resize(m_Images.size());
+			for (int i = 0; i < m_ImageViews.size(); i++)
+			{
+				VkImageViewCreateInfo createInfo{};
+				createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+				createInfo.image = m_Images[i];
+				createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				createInfo.format = m_Format;
 
-			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+				createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+				createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+				createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+				createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
-			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			createInfo.subresourceRange.baseMipLevel = 0;
-			createInfo.subresourceRange.levelCount = 1;
-			createInfo.subresourceRange.baseArrayLayer = 0;
-			createInfo.subresourceRange.layerCount = 1;
+				createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				createInfo.subresourceRange.baseMipLevel = 0;
+				createInfo.subresourceRange.levelCount = 1;
+				createInfo.subresourceRange.baseArrayLayer = 0;
+				createInfo.subresourceRange.layerCount = 1;
 
-			VkResult result = vkCreateImageView(device, &createInfo, nullptr, &m_ImageViews[i]);
-			AG_ASSERT(result == VK_SUCCESS, "Failed to create Swapchain Image View!");
+				VkResult result = vkCreateImageView(device, &createInfo, nullptr, &m_ImageViews[i]);
+				AG_ASSERT(result == VK_SUCCESS, "Failed to create Swapchain Image View!");
+			}
 		}
-		AG_CORE_WARN("Created all Swapchain Image Views!");
 
-		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = m_Format;
-		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		// Create Render Pass
+		{
+			VkAttachmentDescription colorAttachment{};
+			colorAttachment.format = m_Format;
+			colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+			colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-		VkAttachmentReference colorAttachmentRef{};
-		colorAttachmentRef.attachment = 0;
-		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			VkAttachmentReference colorAttachmentRef{};
+			colorAttachmentRef.attachment = 0;
+			colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-		VkSubpassDescription subpass{};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &colorAttachmentRef;
+			VkSubpassDescription subpass{};
+			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			subpass.colorAttachmentCount = 1;
+			subpass.pColorAttachments = &colorAttachmentRef;
 
-		VkSubpassDependency dependency{};
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.dstSubpass = 0;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.srcAccessMask = 0;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			VkSubpassDependency dependency{};
+			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+			dependency.dstSubpass = 0;
+			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependency.srcAccessMask = 0;
+			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-		VkRenderPassCreateInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		renderPassInfo.attachmentCount = 1;
-		renderPassInfo.pAttachments = &colorAttachment;
-		renderPassInfo.subpassCount = 1;
-		renderPassInfo.pSubpasses = &subpass;
-		renderPassInfo.dependencyCount = 1;
-		renderPassInfo.pDependencies = &dependency;
+			VkRenderPassCreateInfo renderPassInfo{};
+			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+			renderPassInfo.attachmentCount = 1;
+			renderPassInfo.pAttachments = &colorAttachment;
+			renderPassInfo.subpassCount = 1;
+			renderPassInfo.pSubpasses = &subpass;
+			renderPassInfo.dependencyCount = 1;
+			renderPassInfo.pDependencies = &dependency;
 
-		VkResult renderPassResult = vkCreateRenderPass(RendererContext::Get().GetDevice(), &renderPassInfo, nullptr, &m_RenderPass);
-		AG_ASSERT(renderPassResult == VK_SUCCESS, "Failed to create Swapchain Render Pass!");
+			VkResult renderPassResult = vkCreateRenderPass(RendererContext::Get().GetDevice(), &renderPassInfo, nullptr, &m_RenderPass);
+			AG_ASSERT(renderPassResult == VK_SUCCESS, "Failed to create Swapchain Render Pass!");
+		}
 
-		CreateFramebuffers();
+		// Create Framebuffers
+		{
+			m_Framebuffers.resize(m_Images.size());
+			for (int i = 0; i < m_Images.size(); i++)
+			{
+				VkFramebufferCreateInfo createInfo{};
+				createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+				createInfo.renderPass = m_RenderPass;
+				createInfo.attachmentCount = 1;
+				createInfo.pAttachments = &m_ImageViews[i];
+				createInfo.width = m_Extent.width;
+				createInfo.height = m_Extent.height;
+				createInfo.layers = 1;
+
+				VkResult result = vkCreateFramebuffer(RendererContext::Get().GetDevice(), &createInfo, nullptr, &m_Framebuffers[i]);
+				AG_ASSERT(result == VK_SUCCESS, "Failed to create Swapchain Framebuffers!");
+			}
+		}
 	}
 
 	void Swapchain::RecreateSwapchain()
@@ -202,26 +222,6 @@ namespace Silver {
 
 		DestroySwapchain();
 		Create();
-		CreateFramebuffers();
-	}
-
-	void Swapchain::CreateFramebuffers()
-	{
-		m_Framebuffers.resize(m_Images.size());
-		for (int i = 0; i < m_Images.size(); i++)
-		{
-			VkFramebufferCreateInfo createInfo{};
-			createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			createInfo.renderPass = m_RenderPass;
-			createInfo.attachmentCount = 1;
-			createInfo.pAttachments = &m_ImageViews[i];
-			createInfo.width = m_Extent.width;
-			createInfo.height = m_Extent.height;
-			createInfo.layers = 1;
-	
-			VkResult result = vkCreateFramebuffer(RendererContext::Get().GetDevice(), &createInfo, nullptr, &m_Framebuffers[i]);
-			AG_ASSERT(result == VK_SUCCESS, "Failed to create Swapchain Framebuffers!");
-		}
 	}
 
 	void Swapchain::Present(VkSemaphore inFinishedSemaphore)
@@ -280,21 +280,13 @@ namespace Silver {
 		vkCmdEndRenderPass(inCommandBuffer);
 	}
 
-	bool Swapchain::AcquireNextImage(VkSemaphore& inImageReadySemaphore)
+	void Swapchain::AcquireNextImage(VkSemaphore& inImageReadySemaphore)
 	{
 		VkResult result = vkAcquireNextImageKHR(RendererContext::Get().GetDevice(), m_Swapchain, UINT64_MAX, inImageReadySemaphore, VK_NULL_HANDLE, &m_ImageIndex);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
-		{
 			RecreateSwapchain();
-			return false;
-		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-		{
 			AG_ASSERT("Failed to acquire Swapchain image!");
-			return false;
-		}
-
-		return true;
 	}
 
 	void Swapchain::DestroySwapchain()

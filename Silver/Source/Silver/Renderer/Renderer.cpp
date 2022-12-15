@@ -16,7 +16,6 @@ namespace Silver {
 		std::vector<VkSemaphore> RenderFinishedSemaphores;
 		std::vector<VkFence> ImageFences;
 
-		// TODO(Milan)
 		std::vector<Ref<CommandBuffer>> CommandBuffers;
 	};
 
@@ -80,7 +79,7 @@ namespace Silver {
 		vkWaitForFences(device, 1, &s_Data->ImageFences[s_Data->CurrentFrame], VK_TRUE, UINT64_MAX);
 
 		// Acquires next image from swapchain
-		uint32_t imageIndex = s_Data->Swapchain->AcquireNextImage(s_Data->ImageAvailableSemaphores[s_Data->CurrentFrame]);
+		s_Data->Swapchain->AcquireNextImage(s_Data->ImageAvailableSemaphores[s_Data->CurrentFrame]);
 		
 		vkResetFences(device, 1, &s_Data->ImageFences[s_Data->CurrentFrame]);
 

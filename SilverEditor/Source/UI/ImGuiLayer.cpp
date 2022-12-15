@@ -1,4 +1,4 @@
-#include "ImGuiPlatformContext.h"
+#include "ImGuiLayer.h"
 #include "Silver/Core/Application.h"
 
 #include <imgui.h>
@@ -16,7 +16,7 @@ static void CheckVulkanError(VkResult inError)
 		abort();
 }
 
-void ImGuiPlatformContext::Init()
+void ImGuiLayer::Init()
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -29,8 +29,7 @@ void ImGuiPlatformContext::Init()
 	//io.ConfigViewportsNoAutoMerge = true;
 	//io.ConfigViewportsNoTaskBarIcon = true;
 
-	// io.Fonts->AddFontFromFileTTF("assets/fonts/Open_Sans/static/OpenSans/OpenSans-Bold.ttf", 18.0f);
-	// io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/Open_Sans/static/OpenSans/OpenSans-Regular.ttf", 18.0f);
+	io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fonts/Roboto/Roboto-Regular.ttf", 16.0f);
 
 	ImGui::StyleColorsDark();
 
@@ -68,46 +67,6 @@ void ImGuiPlatformContext::Init()
 		AG_ASSERT(result == VK_SUCCESS, "Failed to create Descriptor Pool for ImGui!");
 	}
 
-	{/*
-		VkAttachmentDescription attachment{};
-		attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		attachment.format = Silver::Application::Get().GetSwapchain()->GetFormat();
-		attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-		attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-		VkAttachmentReference colorAttachment{};
-		colorAttachment.attachment = 0;
-		colorAttachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		VkSubpassDescription subpass{};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &colorAttachment;
-
-		VkSubpassDependency dependency{};
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.dstSubpass = 0;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.srcAccessMask = 0;  // or VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-		VkRenderPassCreateInfo info{};
-		info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		info.attachmentCount = 1;
-		info.pAttachments = &attachment;
-		info.subpassCount = 1;
-		info.pSubpasses = &subpass;
-		info.dependencyCount = 1;
-		info.pDependencies = &dependency;
-		VkResult result = vkCreateRenderPass(Silver::RendererContext::Get().GetDevice(), &info, nullptr, &m_RenderPass);
-		AG_ASSERT(result == VK_SUCCESS, "Could not create Dear ImGui's render pass");
-	*/}
-
 	ImGui_ImplGlfw_InitForVulkan(Silver::Application::Get().GetWindow()->GetWindow(), true);
 
 	ImGui_ImplVulkan_InitInfo initInfo{};
@@ -124,7 +83,7 @@ void ImGuiPlatformContext::Init()
 	initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 	initInfo.CheckVkResultFn = &CheckVulkanError;
 
-	/* PASS IN RENDERPASS FROM SWAPCHAIN */
+	// We use render pass from swapchain
 	ImGui_ImplVulkan_Init(&initInfo, Silver::Application::Get().GetSwapchain()->GetRenderPass());
 
 	VkCommandBuffer commandBuffer = Silver::RendererContext::Get().CreatePrimaryCommandBuffer(true);
@@ -132,11 +91,11 @@ void ImGuiPlatformContext::Init()
 	Silver::RendererContext::Get().FlushCommandBuffer(commandBuffer, true);
 	ImGui_ImplVulkan_DestroyFontUploadObjects();
 
+	// TODO(Milan): Different theme for ImGui
 	// SetDarkThemeColors();
-	// InitStyle();
 }
 
-void ImGuiPlatformContext::Shutdown()
+void ImGuiLayer::Shutdown()
 {
 	ImGui_ImplVulkan_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
@@ -144,17 +103,16 @@ void ImGuiPlatformContext::Shutdown()
 	// vkQueueWaitIdle()
 
 	vkDestroyDescriptorPool(Silver::RendererContext::Get().GetDevice(), m_DescriptorPool, nullptr);
-	vkDestroyRenderPass(Silver::RendererContext::Get().GetDevice(), m_RenderPass, nullptr);
 }
 
-void ImGuiPlatformContext::BeginFrame()
+void ImGuiLayer::BeginFrame()
 {
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 }
 
-void ImGuiPlatformContext::EndFrame()
+void ImGuiLayer::EndFrame()
 {
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), Silver::Renderer::GetCurrentCommandBuffer()->GetCommandBuffer());
 	ImGui::UpdatePlatformWindows();

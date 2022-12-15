@@ -7,31 +7,17 @@ SilverEditor::SilverEditor(const Silver::ApplicationInfo& inInfo)
 	AG_TRACE("Title of app: {0}", inInfo.Title);
 	Silver::Timer silverEditor;
 
-	m_CommandBuffers.resize(Silver::Renderer::GetConfig().FramesInFlight);
-	for (auto& buffer : m_CommandBuffers)
-	{
-		VkCommandBuffer cmdBuffer = m_RendererContext->CreatePrimaryCommandBuffer();
-		buffer = new Silver::CommandBuffer(cmdBuffer);
-	}
-
-	Silver::Timer shaderTimer;
 	m_Shader = new Silver::Shader("Assets/Shaders/Vertex.glsl", "Assets/Shaders/Fragment.glsl");
-	AG_INFO("Shader creation took: {0}ms", shaderTimer.ElapsedMillis());
 
-	Silver::Timer renderPassTimer;
 	Silver::RenderPassInfo renderPassInfo;
 	renderPassInfo.DebugName = "Default";
 	m_RenderPass = new Silver::RenderPass(renderPassInfo);
-	AG_INFO("Render Pass creation took: {0}ms", renderPassTimer.ElapsedMillis());
-	// m_Swapchain->CreateFramebuffers(m_RenderPass);
 
-	Silver::Timer pipelineTimer;
 	Silver::PipelineInfo pipelineInfo;
 	pipelineInfo.Shader = m_Shader;
 	pipelineInfo.RenderPass = m_RenderPass;
 	pipelineInfo.DebugName = "Default";
 	m_Pipeline = new Silver::Pipeline(pipelineInfo);
-	AG_INFO("Pipeline creation took: {0}ms", pipelineTimer.ElapsedMillis());
 
 	AG_WARN("SilverEditor::SilverEditor took: {0}s", silverEditor.ElapsedSeconds());
 }
@@ -42,7 +28,7 @@ SilverEditor::~SilverEditor()
 
 void SilverEditor::OnInit()
 {
-	m_ImGuiContext.Init();
+	m_ImGuiLayer.Init();
 }
 
 void SilverEditor::OnShutdown()
@@ -130,7 +116,7 @@ void SilverEditor::OnEvent(Silver::Event& inEvent)
 
 void SilverEditor::DrawUI()
 {
-	m_ImGuiContext.BeginFrame();
+	m_ImGuiLayer.BeginFrame();
 
 	ImGuiViewport* MainViewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos(MainViewport->Pos);
@@ -145,10 +131,28 @@ void SilverEditor::DrawUI()
 		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-	ImGui::Begin("MainDockspaceWindow", nullptr, DockspaceWindowFlags);
+	ImGui::Begin("DockspaceWindow", nullptr, DockspaceWindowFlags);
 	ImGui::PopStyleVar(3);
 	ImGui::DockSpace(ImGui::GetID("MainDockspace"));
 
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("New", "Ctrl+N"))
+				int a;
+			if (ImGui::MenuItem("Open...", "Ctrl+O"))
+				int a;
+			if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
+				int a;
+			if (ImGui::MenuItem("Exit"))
+				int a;
+			ImGui::EndMenu();
+				int a;
+		}
+
+		ImGui::EndMenuBar();
+	}
 
 	ImGui::ShowDemoWindow();
 	
@@ -160,12 +164,12 @@ void SilverEditor::DrawUI()
 	ImGui::Text("Point Light");
 	ImGui::End();
 	
-	ImGui::End();
+	ImGui::End(); // DockSpace
 	ImGui::Render();
 
 	auto cmdBuffer = Silver::Renderer::GetCurrentCommandBuffer();
 	m_Swapchain->Bind(cmdBuffer->GetCommandBuffer());
-	m_ImGuiContext.EndFrame();
+	m_ImGuiLayer.EndFrame();
 	m_Swapchain->Unbind(cmdBuffer->GetCommandBuffer());
 }
 
@@ -174,6 +178,8 @@ Silver::Application* Silver::CreateApplication(int ArgC, char** ArgV)
 	Silver::ApplicationInfo info;
 	info.Title = "Silver Editor";
 	info.StartMaximized = true;
+	info.WindowWidth = 1280;
+	info.WindowHeight = 720;
 
 	info.RendererConfig.FramesInFlight = 2;
 
