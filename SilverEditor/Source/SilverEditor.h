@@ -28,5 +28,9 @@ private:
 
 	ImGuiLayer m_ImGuiLayer;
 	
+	Silver::Ref<Silver::Scene> m_ActiveScene = nullptr;
 	std::unique_ptr<PanelManager> m_PanelManeger;
+
+	Silver::Actor m_Actor1;
+	Silver::Actor m_Actor2;
 };

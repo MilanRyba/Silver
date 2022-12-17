@@ -20,7 +20,8 @@ project "Silver"
         "%{IncludeDirs.GLFW}",
         "%{IncludeDirs.spdlog}",
         "%{IncludeDirs.glm}",
-        "%{IncludeDirs.Vulkan}"
+        "%{IncludeDirs.Vulkan}",
+        "%{IncludeDirs.EnTT}"
 	}
 
 	defines {

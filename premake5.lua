@@ -16,7 +16,7 @@ group "ThirdParty"
 include "ThirdParty/GLFW"
 include "ThirdParty/ImGui"
 group ""
--- include projects
 
+-- include projects
 include "Silver"
 include "SilverEditor"

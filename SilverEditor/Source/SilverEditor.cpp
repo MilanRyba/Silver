@@ -29,6 +29,10 @@ SilverEditor::~SilverEditor()
 void SilverEditor::OnInit()
 {
 	m_ImGuiLayer.Init();
+
+	m_ActiveScene = new Silver::Scene();
+	m_Actor1 = m_ActiveScene->CreateActor("Aloy");
+	m_Actor2 = m_ActiveScene->CreateActor();
 }
 
 void SilverEditor::OnShutdown()
@@ -54,6 +58,8 @@ void SilverEditor::OnUpdate(float inDeltaTime)
 		AG_ASSERT("Failed to acquire Swapchain image!");
 	m_RendererContext->ResetFrameFence(m_CurrentFrame);
 	*/
+
+	m_ActiveScene->OnUpdate(inDeltaTime);
 
 	// --- DO RENDERING HERE ---
 	// have rendering commands as functions inside CommandBuffer class (drawIndexed)
@@ -131,28 +137,10 @@ void SilverEditor::DrawUI()
 		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-	ImGui::Begin("DockspaceWindow", nullptr, DockspaceWindowFlags);
+	ImGui::Begin("MainDockspace", nullptr, DockspaceWindowFlags);
 	ImGui::PopStyleVar(3);
+
 	ImGui::DockSpace(ImGui::GetID("MainDockspace"));
-
-	if (ImGui::BeginMenuBar())
-	{
-		if (ImGui::BeginMenu("File"))
-		{
-			if (ImGui::MenuItem("New", "Ctrl+N"))
-				int a;
-			if (ImGui::MenuItem("Open...", "Ctrl+O"))
-				int a;
-			if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
-				int a;
-			if (ImGui::MenuItem("Exit"))
-				int a;
-			ImGui::EndMenu();
-				int a;
-		}
-
-		ImGui::EndMenuBar();
-	}
 
 	ImGui::ShowDemoWindow();
 	
@@ -161,9 +149,22 @@ void SilverEditor::DrawUI()
 	ImGui::End();
 
 	ImGui::Begin("Outliner", &open);
-	ImGui::Text("Point Light");
-	ImGui::End();
-	
+
+	std::string_view tag1 = m_Actor1.GetComponent<Silver::TagComponent>().Tag;
+	std::string_view tag2 = m_Actor2.GetComponent<Silver::TagComponent>().Tag;
+	if (ImGui::TreeNode(tag1.data()))
+	{
+		ImGui::Text("%s", tag1.data());
+		ImGui::TreePop();
+	}
+	if (ImGui::TreeNode(tag2.data()))
+	{
+		ImGui::Button("ahoj");
+		ImGui::TreePop();
+	}
+
+	ImGui::End(); // Outliner
+
 	ImGui::End(); // DockSpace
 	ImGui::Render();
 

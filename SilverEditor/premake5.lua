@@ -19,7 +19,8 @@ project "SilverEditor"
         "%{IncludeDirs.spdlog}",
         "%{IncludeDirs.glm}",
         "%{IncludeDirs.ImGui}",
-        "%{IncludeDirs.Vulkan}"
+        "%{IncludeDirs.Vulkan}",
+        "%{IncludeDirs.EnTT}"
 	}
 
     links {

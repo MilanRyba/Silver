@@ -10,6 +10,7 @@ IncludeDirs["Vulkan"] = "%{VULKAN_SDK}/Include"
 IncludeDirs["shaderc"] = "%{VULKAN_SDK}/Include"
 IncludeDirs["SPIRV_Cross"] = "%{VULKAN_SDK}/Include"
 IncludeDirs["ImGui"] = "%{wks.location}/ThirdParty/ImGui"
+IncludeDirs["EnTT"] = "%{wks.location}/ThirdParty/EnTT/include"
 
 LibraryDirs = {}
 LibraryDirs["Vulkan"] = "%{VULKAN_SDK}/Lib"
