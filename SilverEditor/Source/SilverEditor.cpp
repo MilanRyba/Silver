@@ -33,6 +33,9 @@ void SilverEditor::OnInit()
 	m_ActiveScene = new Silver::Scene();
 	m_Actor1 = m_ActiveScene->CreateActor("Aloy");
 	m_Actor2 = m_ActiveScene->CreateActor();
+
+	m_OutlinerPanel.SetContext(m_ActiveScene);
+	m_OutlinerPanel.SetSelectedActorChangedCallback(AG_BIND_FN(m_AttributesPanel.ActorChangedCallback));
 }
 
 void SilverEditor::OnShutdown()
@@ -141,29 +144,13 @@ void SilverEditor::DrawUI()
 	ImGui::PopStyleVar(3);
 
 	ImGui::DockSpace(ImGui::GetID("MainDockspace"));
-
-	ImGui::ShowDemoWindow();
 	
 	bool open = true;
 	ImGui::Begin("Viewport");
 	ImGui::End();
 
-	ImGui::Begin("Outliner", &open);
-
-	std::string_view tag1 = m_Actor1.GetComponent<Silver::TagComponent>().Tag;
-	std::string_view tag2 = m_Actor2.GetComponent<Silver::TagComponent>().Tag;
-	if (ImGui::TreeNode(tag1.data()))
-	{
-		ImGui::Text("%s", tag1.data());
-		ImGui::TreePop();
-	}
-	if (ImGui::TreeNode(tag2.data()))
-	{
-		ImGui::Button("ahoj");
-		ImGui::TreePop();
-	}
-
-	ImGui::End(); // Outliner
+	m_OutlinerPanel.OnUIRender();
+	m_AttributesPanel.OnUIRender();
 
 	ImGui::End(); // DockSpace
 	ImGui::Render();

@@ -4,7 +4,8 @@
 
 #include "glm/glm.hpp"
 #include "UI/ImGuiLayer.h"
-#include "Panels/PanelManager.h"
+#include "Panels/OutlinerPanel.h"
+#include "Panels/AttributesPanel.h"
 
 class SilverEditor : public Silver::Application
 {
@@ -29,7 +30,9 @@ private:
 	ImGuiLayer m_ImGuiLayer;
 	
 	Silver::Ref<Silver::Scene> m_ActiveScene = nullptr;
-	std::unique_ptr<PanelManager> m_PanelManeger;
+	// std::unique_ptr<PanelManager> m_PanelManeger;
+	Silver::OutlinerPanel m_OutlinerPanel;
+	Silver::AttributesPanel m_AttributesPanel;
 
 	Silver::Actor m_Actor1;
 	Silver::Actor m_Actor2;

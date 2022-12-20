@@ -1,6 +1,8 @@
 #pragma once
 #include "Silver/Core/Reference.h"
 
+// #include "Panels/OutlinerPanel.h"
+
 #include "entt.hpp"
 
 namespace Silver {
@@ -21,6 +23,7 @@ namespace Silver {
 		entt::registry m_Registry;
 
 		friend class Actor;
+		friend class OutlinerPanel;
 	};
 
 }

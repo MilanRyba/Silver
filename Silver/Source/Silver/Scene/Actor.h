@@ -9,6 +9,7 @@ namespace Silver {
 	{
 	public:
 		Actor() = default;
+		Actor(entt::entity inActorHandle, Scene* inScene) : m_ActorHandle(inActorHandle), m_Scene(inScene) {}
 		Actor(const Actor&) = default;
 
 		template<typename T, typename... Args>
@@ -39,10 +40,11 @@ namespace Silver {
 			return m_Scene->m_Registry.any_of<T>(m_ActorHandle);
 		}
 
-		operator bool() const { return m_ActorHandle != entt::null; }
+		inline bool operator==(const Actor& other) const { return m_ActorHandle == other.m_ActorHandle && m_Scene == other.m_Scene; }
+		inline bool operator!=(const Actor& other) const { return !(*this == other); }
 
-	private:
-		Actor(entt::entity inActorHandle, Scene* inScene) : m_ActorHandle(inActorHandle), m_Scene(inScene) {}
+		operator bool() const { return m_ActorHandle != entt::null; }
+		operator uint32_t() const { return (uint32_t)m_ActorHandle; }
 
 	private:
 		entt::entity m_ActorHandle = entt::null;
