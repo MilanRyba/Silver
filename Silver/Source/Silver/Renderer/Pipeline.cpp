@@ -1,24 +1,49 @@
 #include "AgPCH.h"
 #include "Pipeline.h"
 #include "RendererContext.h"
+#include "Buffer.h"
+
 #include "Silver/Core/Application.h"
 
 namespace Utils {
 
 	VkPrimitiveTopology SilverTopologyToVulkan(Silver::PrimitiveTopology InTopology)
 	{
+		using enum Silver::PrimitiveTopology;
 		switch (InTopology)
 		{
-			case Silver::PrimitiveTopology::None: return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
-			case Silver::PrimitiveTopology::Points: return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-			case Silver::PrimitiveTopology::Lines: return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-			case Silver::PrimitiveTopology::LineStrip: return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-			case Silver::PrimitiveTopology::Triangles: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-			case Silver::PrimitiveTopology::TriangleStrip: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-			case Silver::PrimitiveTopology::TriangleFan: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+			case None:			return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
+			case Points:		return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+			case Lines:			return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+			case LineStrip:		return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+			case Triangles:		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+			case TriangleStrip:	return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+			case TriangleFan:	return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
 		}
 
 		return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
+	}
+
+	static VkFormat ShaderDataTypeToVulkan(Silver::ShaderDataType inType)
+	{
+		using enum Silver::ShaderDataType;
+		switch (inType)
+		{
+			case Float:		return VK_FORMAT_R32_SFLOAT;
+			case Float2:	return VK_FORMAT_R32G32_SFLOAT;
+			case Float3:	return VK_FORMAT_R32G32B32_SFLOAT;
+			case Float4:	return VK_FORMAT_R32G32B32A32_SFLOAT;
+			case Int:		return VK_FORMAT_R32_SINT;
+			case Int2:		return VK_FORMAT_R32G32_SINT;
+			case Int3:		return VK_FORMAT_R32G32B32_SINT;
+			case Int4:		return VK_FORMAT_R32G32B32A32_SINT;
+			case Uint:		return VK_FORMAT_R32_UINT;
+			case Uint2:		return VK_FORMAT_R32G32_UINT;
+			case Uint3:		return VK_FORMAT_R32G32B32_UINT;
+			case Uint4:		return VK_FORMAT_R32G32B32A32_UINT;
+		}
+
+		return VK_FORMAT_MAX_ENUM;
 	}
 
 }
@@ -30,6 +55,9 @@ namespace Silver {
 	{
 		// All of this is pretty much hard-coded (as most other things are) and will be rewritten
 
+		/******************
+		*     Shaders     *
+		******************/
 		VkPipelineShaderStageCreateInfo vertexShaderInfo{};
 		vertexShaderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		vertexShaderInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -42,15 +70,45 @@ namespace Silver {
 		fragmentShaderInfo.module = m_Info.Shader->GetShaderModules()[VK_SHADER_STAGE_FRAGMENT_BIT];
 		fragmentShaderInfo.pName = "main";
 
-		VkPipelineShaderStageCreateInfo shaderInfos[] = {vertexShaderInfo, fragmentShaderInfo};
+		VkPipelineShaderStageCreateInfo shaderInfos[] = { vertexShaderInfo, fragmentShaderInfo };
+
+		/****************************
+		*     Vertex attributes     *
+		****************************/
+		const std::vector<VertexAttribute>& vertexAttributes = inInfo.Layout.GetAttributes();
+		AG_ASSERT(vertexAttributes.size() > 0, "Vertex buffer has no layout");
+
+		VkVertexInputBindingDescription binding = {};
+		binding.binding = 0;
+		binding.stride = inInfo.Layout.GetStride();
+		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+		attributeDescriptions.reserve(vertexAttributes.size());
+		uint32_t location = 0;
+		for (const VertexAttribute& attribute : vertexAttributes)
+		{
+			VkVertexInputAttributeDescription description = {};
+
+			description.binding = binding.binding;
+			description.location = location;
+			description.offset = attribute.Offset;
+			description.format = Utils::ShaderDataTypeToVulkan(attribute.Type);
+
+			attributeDescriptions.emplace_back(description);
+
+			location++;
+		}
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = 0;
-		vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-		vertexInputInfo.vertexAttributeDescriptionCount = 0;
-		vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+		vertexInputInfo.vertexBindingDescriptionCount = 1;
+		vertexInputInfo.pVertexBindingDescriptions = &binding;
+		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
+		/*****
+		*****/
 		VkPipelineInputAssemblyStateCreateInfo assemblyInfo{};
 		assemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		assemblyInfo.topology = Utils::SilverTopologyToVulkan(m_Info.Topology);
@@ -112,6 +170,9 @@ namespace Silver {
 		multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 		multisampling.alphaToOneEnable = VK_FALSE; // Optional
 
+		/*******************
+		*     Blending     *
+		*******************/
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		colorBlendAttachment.blendEnable = VK_FALSE;
@@ -133,6 +194,9 @@ namespace Silver {
 		colorBlending.blendConstants[2] = 0.0f; // Optional
 		colorBlending.blendConstants[3] = 0.0f; // Optional
 
+		/**************************
+		*     Pipeline Layout     *
+		**************************/
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 0; // Optional

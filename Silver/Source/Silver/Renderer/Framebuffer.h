@@ -16,7 +16,7 @@ namespace Silver {
 		FramebufferImageInfo(ImageFormat inFormat) : Format(inFormat) {}
 
 		ImageFormat Format;
-		// Filtering, wrap
+		// TODO(Milan): Filtering, wrap
 	};
 
 	struct FramebufferAttachmentInfo
@@ -37,9 +37,9 @@ namespace Silver {
 
 		// Multisampling
 		uint32_t Samples = 1;
-		bool SwapchainTarget = false;
+		// bool SwapchainTarget = false; --- REMOVE ---
 
-		VkImageView ExistingImage = VK_NULL_HANDLE;
+		// VkImageView ExistingImage = VK_NULL_HANDLE; --- ??? ---
 
 		std::string DebugName;
 	};

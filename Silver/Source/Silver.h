@@ -19,5 +19,6 @@
 #include "Silver/Renderer/Shader.h"
 #include "Silver/Renderer/RenderPass.h"
 #include "Silver/Renderer/Pipeline.h"
+#include "Silver/Renderer/Buffer.h"
 
 // EntryPoint.h should be included only by the client and not here

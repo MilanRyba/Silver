@@ -1,6 +1,17 @@
 #include "SilverEditor.h"
 #include <imgui.h>
 
+const std::vector<Silver::Vertex> vertices = {
+	{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+	{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+	{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+	{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+};
+
+const std::vector<uint16_t> indices = {
+	0, 1, 2, 2, 3, 0
+};
+
 SilverEditor::SilverEditor(const Silver::ApplicationInfo& inInfo)
 	: Application(inInfo)
 {
@@ -9,17 +20,37 @@ SilverEditor::SilverEditor(const Silver::ApplicationInfo& inInfo)
 
 	m_Shader = new Silver::Shader("Assets/Shaders/Vertex.glsl", "Assets/Shaders/Fragment.glsl");
 
+	Silver::FramebufferInfo info;
+	info.Attachments = { Silver::ImageFormat::RGBA8 };
+
 	Silver::RenderPassInfo renderPassInfo;
 	renderPassInfo.DebugName = "Default";
 	m_RenderPass = new Silver::RenderPass(renderPassInfo);
 
 	Silver::PipelineInfo pipelineInfo;
-	pipelineInfo.Shader = m_Shader;
-	pipelineInfo.RenderPass = m_RenderPass;
 	pipelineInfo.DebugName = "Default";
+	pipelineInfo.Shader = m_Shader;
+	pipelineInfo.Layout = {
+		{ Silver::ShaderDataType::Float2, "a_Position"  },
+		{ Silver::ShaderDataType::Float3, "a_Color" }
+	};
+	AG_CRITICAL("{0}", pipelineInfo.Layout.GetStride());
+	AG_CRITICAL("{0}", pipelineInfo.Layout.GetAttributes()[0].Name);
+	pipelineInfo.RenderPass = m_RenderPass;
 	m_Pipeline = new Silver::Pipeline(pipelineInfo);
 
 	AG_WARN("SilverEditor::SilverEditor took: {0}s", silverEditor.ElapsedSeconds());
+
+	Silver::VertexBufferInfo vertexBufferInfo;
+	vertexBufferInfo.Size = sizeof(Silver::Vertex) * vertices.size();
+	vertexBufferInfo.Data = (void*)vertices.data();
+	m_VertexBuffer = new Silver::VertexBuffer(vertexBufferInfo);
+	// m_VertexBuffer->SetData(vertices);
+
+	Silver::IndexBufferInfo indexBufferInfo;
+	indexBufferInfo.Size = sizeof(indices[0]) * indices.size();
+	indexBufferInfo.Data = (void*)indices.data();
+	m_IndexBuffer = new Silver::IndexBuffer(indexBufferInfo);
 }
 
 SilverEditor::~SilverEditor()
@@ -67,17 +98,26 @@ void SilverEditor::OnUpdate(float inDeltaTime)
 	// --- DO RENDERING HERE ---
 	// have rendering commands as functions inside CommandBuffer class (drawIndexed)
 
+	// This already happens inside the renderer
+	// m_CommandBuffers[m_CurrentFrame]->Reset();
+	// m_CommandBuffers[m_CurrentFrame]->Begin();
+	
 	/*
-	m_CommandBuffers[m_CurrentFrame]->Reset();
+		* begin command buffer, begin render pass
+		* bind pipeline, vertex and index buffer
+		* viewport adn scissor
+		* draw
+		* end render pass, end command buffer
+	*/
 
-	m_CommandBuffers[m_CurrentFrame]->Begin();
-	Silver::Renderer::BeginRenderPass(m_CommandBuffers[m_CurrentFrame], m_RenderPass, m_RendererContext->GetImageIndex());
+	/*
+	Silver::Renderer::BeginRenderPass(commandBuffer, m_RenderPass);
 
 	// Rendering
 	{
 		VkCommandBuffer cmdBuffer = m_CommandBuffers[m_CurrentFrame]->GetCommandBuffer();
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetPipeline());
-		// m_Pipeline->Begin() // -> Binds the pipeline
+		// m_Pipeline->Bind()
 
 		VkExtent2D extent = m_Swapchain->GetExtent();
 		VkViewport viewport{};
@@ -94,14 +134,18 @@ void SilverEditor::OnUpdate(float inDeltaTime)
 		scissor.extent = extent;
 		vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
-		vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
+		m_VertexBuffer->Bind(commandBuffer);
+		m_IndexBuffer->Bind(commandBuffer);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 	}
 
-	Silver::Renderer::EndRenderPass(m_CommandBuffers[m_CurrentFrame]);
-	m_CommandBuffers[m_CurrentFrame]->End();
-	// Submits the command buffer to a (for now graphics) queue
-	m_RendererContext->FlushCommandBuffer(m_CommandBuffers[m_CurrentFrame]->GetCommandBuffer(), m_CurrentFrame);
+	Silver::Renderer::EndRenderPass(m_CommandBuffer);
+	m_CommandBuffers[m_CurrentFrame]->End(); 
 	*/
+	// Submits the command buffer to a (for now graphics) queue
+	// m_RendererContext->FlushCommandBuffer(m_CommandBuffers[m_CurrentFrame]->GetCommandBuffer(), m_CurrentFrame);
+	
 
 	// Handle ImGui when resizing;
 	DrawUI();
@@ -147,6 +191,10 @@ void SilverEditor::DrawUI()
 	
 	bool open = true;
 	ImGui::Begin("Viewport");
+
+	// Descritor set with an image
+	// ImGui::Image();
+
 	ImGui::End();
 
 	m_OutlinerPanel.OnUIRender();

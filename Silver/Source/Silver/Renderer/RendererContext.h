@@ -39,7 +39,7 @@ namespace Silver {
 		VkDevice GetDevice() { return m_Device; }
 
 		Queue GetGraphicsQueue() { return m_GraphicsQueue; }
-		uint32_t GetImageIndex() { return m_ImageIndex; }
+		Queue GetComputeQueue() { return m_ComputeQueue; }
 	private:
 		void FindQueueFamily(VkPhysicalDevice device);
 	private:
@@ -52,8 +52,6 @@ namespace Silver {
 
 		Ref<CommandPool> m_GraphicsCommandPool;
 		Ref<CommandPool> m_ComputeCommandPool;
-
-		uint32_t m_ImageIndex = 0;
 	};
 
 }

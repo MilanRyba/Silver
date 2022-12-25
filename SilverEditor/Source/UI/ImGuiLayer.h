@@ -21,6 +21,10 @@ public:
 
 	void BeginFrame();
 	void EndFrame();
+
+private:
+	void SetDarkThemeColors();
+
 private:
 	VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
 };

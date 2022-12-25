@@ -4,6 +4,7 @@
 
 #include "Shader.h"
 #include "RenderPass.h"
+#include "Buffer.h"
 
 namespace Silver {
 
@@ -28,6 +29,7 @@ namespace Silver {
 	{
 		Ref<Shader> Shader;
 		Ref<RenderPass> RenderPass;
+		VertexBufferLayout Layout;
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
 		DepthCompareOperator DepthOperator = DepthCompareOperator::GreaterOrEqual;
 		bool BackfaceCulling = true;

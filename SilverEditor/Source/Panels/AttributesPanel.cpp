@@ -43,14 +43,30 @@ namespace Silver {
 
 		if (inActor.HasComponent<TransformComponent>())
 		{
-			if (ImGui::CollapsingHeader("Transform", flags))
-			{
-				auto& transform = inActor.GetComponent<TransformComponent>().Transform;
-				ImGui::Text("Translate"); ImGui::SameLine();
-				ImGui::DragFloat3("##", glm::value_ptr(transform[3]), 0.5f);
+			auto& transform = inActor.GetComponent<TransformComponent>().Transform;
 
-				size_t hash = typeid(TransformComponent).hash_code();
-				AG_TRACE("{0}", hash);
+			if (ImGui::CollapsingHeader("Transform_Header", flags))
+			{
+				ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
+				if (ImGui::BeginTable("Transform_Table", 2, flags))
+				{
+					ImGui::TableNextColumn(); ImGui::Text("Translate");
+					ImGui::Separator();
+					ImGui::TableNextColumn(); ImGui::DragFloat3("##", glm::value_ptr(transform[3]), 0.1f);
+
+					ImGui::TableNextColumn(); ImGui::Text("Rotate");
+					ImGui::Separator();
+					ImGui::TableNextColumn(); ImGui::DragFloat3("##", glm::value_ptr(transform[3]), 0.1f);
+
+					ImGui::TableNextColumn(); ImGui::Text("Scale");
+					ImGui::Separator();
+					ImGui::TableNextColumn(); ImGui::DragFloat3("##", glm::value_ptr(transform[3]), 0.1f);
+
+					ImGui::EndTable();
+				}
+
+				// size_t hash = typeid(TransformComponent).hash_code();
+				// AG_CRITICAL("{0}", hash);
 			}
 		}
 	}

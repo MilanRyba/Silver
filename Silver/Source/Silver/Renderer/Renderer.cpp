@@ -1,5 +1,6 @@
 #include "AgPCH.h"
 #include "Renderer.h"
+#include "VulkanAllocator.h"
 
 #include "Silver/Core/Application.h"
 
@@ -30,6 +31,7 @@ namespace Silver {
 		s_Data->Context = inContext;
 		s_Data->Swapchain = inSwapchain;
 
+		// Create synchronization objects + command buffers
 		{
 			s_Data->ImageAvailableSemaphores.resize(s_Config.FramesInFlight);
 			s_Data->RenderFinishedSemaphores.resize(s_Config.FramesInFlight);
@@ -56,10 +58,17 @@ namespace Silver {
 				buffer = new CommandBuffer(cmdBuffer);
 			}
 		}
+
+		/*************************************
+		*				Vma					 *
+		*************************************/
+		VulkanAllocator::Init();
 	}
 
 	void Renderer::Shutdown()
 	{
+		VulkanAllocator::Shutdown();
+
 		for (uint32_t i = 0; i < Renderer::GetConfig().FramesInFlight; i++)
 		{
 			vkDestroySemaphore(s_Data->Context->Get().GetDevice(), s_Data->ImageAvailableSemaphores[i], nullptr);

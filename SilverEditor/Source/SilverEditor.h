@@ -27,6 +27,9 @@ private:
 	Silver::Ref<Silver::RenderPass> m_RenderPass;
 	Silver::Ref<Silver::Pipeline> m_Pipeline;
 
+	Silver::Ref<Silver::VertexBuffer> m_VertexBuffer;
+	Silver::Ref<Silver::IndexBuffer> m_IndexBuffer;
+
 	ImGuiLayer m_ImGuiLayer;
 	
 	Silver::Ref<Silver::Scene> m_ActiveScene = nullptr;

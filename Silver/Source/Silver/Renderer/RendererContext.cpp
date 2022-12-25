@@ -182,13 +182,13 @@ namespace Silver {
         allocateInfo.commandBufferCount = 1;
 
         VkResult result = vkAllocateCommandBuffers(RendererContext::Get().GetDevice(), &allocateInfo, &commandBuffer);
-        AG_ASSERT(result == VK_SUCCESS, "Failed to allocate Command Buffers!");
+        AG_ASSERT(result == VK_SUCCESS, "Failed to allocate Command Buffer!");
 
         if (inBegin)
         {
             VkCommandBufferBeginInfo beginInfo{};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginInfo.flags = 0; // TODO(Milan): Should this be really be one time submit
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT; // TODO(Milan): Should this be really be one time submit
             beginInfo.pInheritanceInfo = nullptr;
 
             VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -208,22 +208,11 @@ namespace Silver {
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        // VkSemaphore waitSemaphores[] = { m_ImageReadySemaphores[inCurrentFrame] };
-        // VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        // submitInfo.waitSemaphoreCount = 1;
-        // submitInfo.pWaitSemaphores = waitSemaphores;
-        // submitInfo.pWaitDstStageMask = waitStages;
-
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &inCommandBuffer;
 
-        // VkSemaphore signalSemaphores[] = { m_PresentationReadySemaphores[inCurrentFrame] };
-        // submitInfo.signalSemaphoreCount = 1;
-        // submitInfo.pSignalSemaphores = signalSemaphores;
-
         vkQueueSubmit(m_GraphicsQueue.QueueHandle, 1, &submitInfo, VK_NULL_HANDLE);
 
-        // TODO(Milan): See if we nee this
         vkQueueWaitIdle(m_GraphicsQueue.QueueHandle);
 
         if (inFree)
