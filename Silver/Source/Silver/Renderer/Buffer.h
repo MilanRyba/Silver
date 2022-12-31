@@ -113,10 +113,22 @@ namespace Silver {
 		VmaAllocation m_Allocation;
 	};
 
+	enum class IndexType
+	{
+		None = 0,
+		Uint16, Uint32
+	};
+
 	struct IndexBufferInfo
 	{
-		size_t Size = 0;
+		// The index data
 		void* Data = nullptr;
+
+		// Size of the index buffer in bytes
+		size_t Size = 0;
+
+		// Must be set manually (no default)
+		IndexType Type = IndexType::None;
 	};
 
 	class IndexBuffer : public RefTarget
@@ -127,9 +139,21 @@ namespace Silver {
 
 		void Bind(VkCommandBuffer inCommandBuffer);
 
+		size_t GetSize() { return m_Size; }
+		size_t GetTypeSize()
+		{
+			if (m_IndexType == IndexType::Uint16)
+				return sizeof(uint16_t);
+			else if (m_IndexType == IndexType::Uint32)
+				return sizeof(uint32_t);
+		}
+
 	private:
 		VkBuffer m_Buffer;
 		VmaAllocation m_Allocation;
+
+		size_t m_Size = 0;
+		IndexType m_IndexType;
 	};
 
 }

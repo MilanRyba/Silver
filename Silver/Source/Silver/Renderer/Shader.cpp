@@ -32,7 +32,7 @@ namespace Utils {
 
 	static const char* GetCacheDirectory()
 	{
-		return "Assets/Cache/Shaders/Vulkan";
+		return "Assets/Cache/Shaders";
 	}
 
 	static void CreateCacheDirectoryIfNeeded()

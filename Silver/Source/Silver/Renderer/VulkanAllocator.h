@@ -16,9 +16,11 @@ namespace Silver {
 		static void Shutdown();
 
 		static VmaAllocation AllocateBuffer(VkBufferCreateInfo* inBufferInfo, VmaMemoryUsage inUsage, VkMemoryPropertyFlags inMemoryProperties, VkBuffer* outBuffer);
+		static VmaAllocation AllocateImage(VkImageCreateInfo* inImageInfo, VmaMemoryUsage inUsage, VkMemoryPropertyFlags inMemoryProperties, VkImage* outImage);
 
 		// Destroys Vulkan buffer and frees allocated memory
 		static void DestroyBuffer(VkBuffer inBuffer, VmaAllocation inAllocation);
+		static void DestroyImage(VkImage inImage, VmaAllocation inAllocation);
 
 		static void MapMemory(VmaAllocation inAllocation, void** outData);
 		static void UnmapMemory(VmaAllocation inAllocation);

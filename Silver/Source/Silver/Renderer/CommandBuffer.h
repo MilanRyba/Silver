@@ -1,4 +1,6 @@
 #pragma once
+#include "Buffer.h"
+
 #include "Silver/Core/Reference.h"
 #include <vulkan/vulkan.h>
 
@@ -27,6 +29,8 @@ namespace Silver {
 		void End();
 
 		void Reset();
+
+		void DrawIndexed(Ref<IndexBuffer> inIndexBuffer);
 	private:
 		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
 	};

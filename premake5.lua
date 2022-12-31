@@ -20,3 +20,4 @@ group ""
 -- include projects
 include "Silver"
 include "SilverEditor"
+include "Sandbox"

@@ -20,10 +20,15 @@ SilverEditor::SilverEditor(const Silver::ApplicationInfo& inInfo)
 
 	m_Shader = new Silver::Shader("Assets/Shaders/Vertex.glsl", "Assets/Shaders/Fragment.glsl");
 
-	Silver::FramebufferInfo info;
-	info.Attachments = { Silver::ImageFormat::RGBA8 };
+	Silver::FramebufferInfo framebufferInfo;
+	framebufferInfo.Attachments = { Silver::ImageFormat::RGBA8 };
+	framebufferInfo.Width = 1024;
+	framebufferInfo.Height = 1024;
+	framebufferInfo.DebugName = "Default";
+	m_Framebuffer = new Silver::Framebuffer(framebufferInfo);
 
 	Silver::RenderPassInfo renderPassInfo;
+	renderPassInfo.TargetFramebuffer = m_Framebuffer;
 	renderPassInfo.DebugName = "Default";
 	m_RenderPass = new Silver::RenderPass(renderPassInfo);
 

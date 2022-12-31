@@ -5,7 +5,7 @@
 
 namespace Utils {
 
-	VkSampleCountFlagBits NumberOfSamplesToVulkan(uint32_t inSamples)
+	static VkSampleCountFlagBits NumberOfSamplesToVulkan(uint32_t inSamples)
 	{
 		switch (inSamples)
 		{
@@ -38,7 +38,7 @@ namespace Silver {
 		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = Application::Get().GetSwapchain()->GetFormat();
+		//colorAttachment.format = /* ToVulkan m_Info.TargetFramebuffer->GetInfo().Attachments.Attachments[0].Format */
 		colorAttachment.samples = Utils::NumberOfSamplesToVulkan(1);
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;

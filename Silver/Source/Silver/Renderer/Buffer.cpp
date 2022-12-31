@@ -64,6 +64,7 @@ namespace Silver {
 	}
 
 	IndexBuffer::IndexBuffer(IndexBufferInfo inInfo)
+		: m_Size(inInfo.Size), m_IndexType(inInfo.Type)
 	{
 		/**************************
 		*      Staging buffer     *
@@ -117,8 +118,10 @@ namespace Silver {
 
 	void IndexBuffer::Bind(VkCommandBuffer inCommandBuffer)
 	{
-		// TODO(Milan): Handle 32 bit and 16 bit uints
-		vkCmdBindIndexBuffer(inCommandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT16);
+		if (m_IndexType == IndexType::Uint16)
+			vkCmdBindIndexBuffer(inCommandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT16);
+		else if (m_IndexType == IndexType::Uint32)
+			vkCmdBindIndexBuffer(inCommandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT32);
 	}
 
 }

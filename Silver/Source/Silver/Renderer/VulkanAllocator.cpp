@@ -48,9 +48,30 @@ namespace Silver
 		return outAllocation;
 	}
 
+	VmaAllocation VulkanAllocator::AllocateImage(VkImageCreateInfo* inImageInfo, VmaMemoryUsage inUsage, VkMemoryPropertyFlags inMemoryProperties, VkImage* outImage)
+	{
+		VmaAllocationCreateInfo allocationCreateInfo = {};
+		allocationCreateInfo.usage = inUsage;
+		allocationCreateInfo.flags = inMemoryProperties;
+
+		VmaAllocation outAllocation;
+		VmaAllocationInfo allocationInfo = {}; // Optional. Information about allocated memory. It can be later fetched using function vmaGetAllocationInfo()
+
+		VkResult result = vmaCreateImage(s_AllocatorData->Allocator, inImageInfo, &allocationCreateInfo, outImage, &outAllocation, &allocationInfo);
+		AG_ASSERT(result == VK_SUCCESS);
+
+		AG_CORE_INFO("VulkanAllocator: Allocated image of size: {0}", allocationInfo.size);
+		return outAllocation;
+	}
+
 	void VulkanAllocator::DestroyBuffer(VkBuffer inBuffer, VmaAllocation inAllocation)
 	{
 		vmaDestroyBuffer(s_AllocatorData->Allocator, inBuffer, inAllocation);
+	}
+
+	void VulkanAllocator::DestroyImage(VkImage inImage, VmaAllocation inAllocation)
+	{
+		vmaDestroyImage(s_AllocatorData->Allocator, inImage, inAllocation);
 	}
 
 	void VulkanAllocator::MapMemory(VmaAllocation inAllocation, void** outData)

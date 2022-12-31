@@ -23,6 +23,7 @@ private:
 private:
 	uint32_t m_CurrentFrame = 0;
 
+	Silver::Ref<Silver::Framebuffer> m_Framebuffer;
 	Silver::Ref<Silver::Shader> m_Shader;
 	Silver::Ref<Silver::RenderPass> m_RenderPass;
 	Silver::Ref<Silver::Pipeline> m_Pipeline;

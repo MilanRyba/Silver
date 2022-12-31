@@ -66,4 +66,9 @@ namespace Silver {
 		vkResetCommandBuffer(m_CommandBuffer, 0);
 	}
 
+	void CommandBuffer::DrawIndexed(Ref<IndexBuffer> inIndexBuffer)
+	{
+		vkCmdDrawIndexed(m_CommandBuffer, static_cast<uint32_t>(inIndexBuffer->GetSize() / inIndexBuffer->GetTypeSize()), 1, 0, 0, 0);
+	}
+
 }

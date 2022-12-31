@@ -1,13 +1,16 @@
 #pragma once
 #include "Silver/Core/Reference.h"
 #include <vulkan/vulkan.h>
+#include <vma/vk_mem_alloc.h>
 
 namespace Silver {
 
 	// TODO(Milan): Move to Image file in the future
 	enum class ImageFormat
 	{
-		RGBA8
+		None = 0,
+
+		R8, RG8, RGBA8
 	};
 
 	struct FramebufferImageInfo
@@ -22,9 +25,9 @@ namespace Silver {
 	struct FramebufferAttachmentInfo
 	{
 		FramebufferAttachmentInfo() = default;
-		FramebufferAttachmentInfo(std::initializer_list<ImageFormat> inAttachments) : Attachments(inAttachments) {}
+		FramebufferAttachmentInfo(std::initializer_list<FramebufferImageInfo> inAttachments) : Attachments(inAttachments) {}
 
-		std::vector<ImageFormat> Attachments;
+		std::vector<FramebufferImageInfo> Attachments;
 	};
 
 	struct FramebufferInfo
@@ -44,7 +47,13 @@ namespace Silver {
 		std::string DebugName;
 	};
 
-	// TODO(Milan): To be implemented later
+	struct FramebufferAttachment
+	{
+		VkImage Image;
+		VkImageView ImageView;
+		VmaAllocation Allocation;
+	};
+
 	class Framebuffer : public RefTarget
 	{
 	public:
@@ -56,6 +65,14 @@ namespace Silver {
 		VkFramebuffer m_Framebuffer = VK_NULL_HANDLE;
 
 		FramebufferInfo m_Info;
+
+		std::vector<FramebufferImageInfo> m_ColorAttachmentInfos;
+
+		// The actual Vulkan image handles and image views
+		std::vector<FramebufferAttachment> m_ColorAttachments;
+
+		// TODO(Milan): In the future depth attachment as well
+		// FramebufferAttachment m_DepthAttachment;
 	};
 
 }

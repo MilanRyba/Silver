@@ -28,7 +28,8 @@ namespace Silver {
 	struct PipelineInfo
 	{
 		Ref<Shader> Shader;
-		Ref<RenderPass> RenderPass;
+		// TEMP
+		VkRenderPass RenderPass;
 		VertexBufferLayout Layout;
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
 		DepthCompareOperator DepthOperator = DepthCompareOperator::GreaterOrEqual;
@@ -46,6 +47,8 @@ namespace Silver {
 	public:
 		Pipeline(PipelineInfo inInfo);
 		~Pipeline();
+
+		void Bind(VkCommandBuffer inCommandBuffer);
 
 		VkPipeline GetPipeline() const { return m_Pipeline; }
 		PipelineInfo GetInfo() const { return m_Info; }

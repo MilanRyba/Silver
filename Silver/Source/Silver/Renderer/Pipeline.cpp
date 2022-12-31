@@ -7,7 +7,7 @@
 
 namespace Utils {
 
-	VkPrimitiveTopology SilverTopologyToVulkan(Silver::PrimitiveTopology InTopology)
+	static VkPrimitiveTopology SilverTopologyToVulkan(Silver::PrimitiveTopology InTopology)
 	{
 		using enum Silver::PrimitiveTopology;
 		switch (InTopology)
@@ -220,7 +220,7 @@ namespace Silver {
 		createInfo.pColorBlendState = &colorBlending;
 		createInfo.pDynamicState = &dynamicState;
 		createInfo.layout = m_Layout;
-		createInfo.renderPass = m_Info.RenderPass->GetRenderPass();
+		createInfo.renderPass = m_Info.RenderPass;
 		createInfo.subpass = 0;
 		createInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		createInfo.basePipelineIndex = -1; // Optional
@@ -234,6 +234,11 @@ namespace Silver {
 	{
 		vkDestroyPipelineLayout(RendererContext::Get().GetDevice(), m_Layout, nullptr);
 		vkDestroyPipeline(RendererContext::Get().GetDevice(), m_Pipeline, nullptr);
+	}
+
+	void Pipeline::Bind(VkCommandBuffer inCommandBuffer)
+	{
+		vkCmdBindPipeline(inCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
 	}
 
 }
